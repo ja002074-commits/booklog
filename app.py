@@ -21,7 +21,7 @@ except ImportError:
     PYZBAR_AVAILABLE = False
 
 # --- 1. Settings & CSS Styling ---
-st.set_page_config(layout="wide", page_title="読書DB", page_icon="🏛️")
+st.set_page_config(layout="wide", page_title="BookLog DB", page_icon="favicon.png")
 
 # Force Japanese Encoding/Lang
 st.markdown("""
@@ -60,9 +60,15 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] h4,
+section[data-testid="stSidebar"] h5,
+section[data-testid="stSidebar"] h6,
 section[data-testid="stSidebar"] span,
 section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] span,
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] small,
+section[data-testid="stSidebar"] .stMarkdown {
     color: #ffffff !important;
     font-family: "Montserrat", "Noto Sans JP", sans-serif !important;
 }
