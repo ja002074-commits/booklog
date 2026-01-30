@@ -69,42 +69,51 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid #E5E0D8;
 }
 
-/* 4. Inputs - FIXING THE ARTIFACTS */
-/* Resetting aggressive borders. Targeting the actual input element more safely */
-input, textarea, select {
-    background-color: #FFFFFF !important;
-    color: #333333 !important;
-    border: 1px solid #CCCCCC !important;
-    border-radius: 4px !important; /* Slightly rounded for "calm" feel */
-    padding: 8px !important;
-}
-
-/* Fix specific Streamlit/BaseWeb structures to avoid double borders */
+/* 4. Inputs - ULTIMATE CLEANING */
+/* Standard Inputs */
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div {
     background-color: #FFFFFF !important;
-    border: 1px solid #CCCCCC !important; 
+    border: 1px solid #CCCCCC !important; /* The ONLY border allowed */
     border-radius: 4px !important;
     box-shadow: none !important;
+    padding: 0 !important; /* Let children handle padding or set specialized padding */
 }
 
-/* CRITICAL FIX: Remove internal borders/spacers in SelectBox */
-div[data-baseweb="select"] > div > div {
+/* Remove borders from native inputs */
+input, textarea, select {
+    border: none !important; 
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+/* CLEANUP: Remove borders/backgrounds from all internal layout divs of Select */
+div[data-baseweb="select"] > div > div, 
+div[data-baseweb="select"] > div span {
     border: none !important;
+    background-color: transparent !important;
     margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Remove default focus glows and apply calm accent */
-div[data-baseweb="input"] > div:focus-within,
-div[data-baseweb="select"] > div:focus-within {
-    border-color: #8C7B70 !important; /* Muted warm brown/grey */
-    outline: 1px solid #8C7B70 !important;
     box-shadow: none !important;
 }
 
+/* Hide the vertical separator line */
+div[data-baseweb="select"] > div > div:last-child > div:first-child {
+     /* This targets the separator often found before the arrow */
+     border-right: none !important; 
+     border-left: none !important;
+     display: none !important;
+}
+
+/* Focus */
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within {
+    border-color: #8C7B70 !important;
+    outline: 1px solid #8C7B70 !important;
+}
+
+/* Icon Color */
 div[data-baseweb="select"] svg {
-    fill: #888888 !important;
+    fill: #999999 !important;
 }
 
 /* 5. Buttons - Soft & Minimal */
