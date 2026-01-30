@@ -77,69 +77,82 @@ section[data-testid="stSidebar"] span {
     color: #333333 !important;
 }
 
-/* Sidebar Inputs */
-[data-testid="stSidebar"] input, [data-testid="stSidebar"] textarea, [data-testid="stSidebar"] select, [data-testid="stSidebar"] div[data-baseweb="select"] > div {
-    background-color: #FFFFFF;
-    color: #333333;
-    border: 1px solid #CCCCCC;
-    border-radius: 0px; /* Flat design */
+/* Main Area Inputs (Search, filters) - Minimalist & Flat */
+div[data-baseweb="select"] > div,
+div[data-baseweb="input"] > div,
+input, textarea, select {
+    background-color: #FFFFFF !important;
+    color: #333333 !important;
+    border: 1px solid #DDDDDD !important;
+    border-radius: 0px !important; /* 角ばらせる */
+}
+
+/* Focus states */
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within {
+    border-color: #7F0019 !important;
+    box-shadow: none !important;
 }
 
 /* Buttons - MUJI Style (Flat, Red or Grey) */
 .stButton > button {
     background-color: #FFFFFF;
-    border: 1px solid #333333;
+    border: 1px solid #AAAAAA;
     color: #333333;
-    border-radius: 0px; /* 角を丸くしない */
-    font-weight: bold;
-    transition: all 0.2s ease;
-    padding: 0.5rem 1rem;
+    border-radius: 0px;
+    font-weight: 500;
+    padding: 0.5rem 1.5rem;
+    box-shadow: none;
 }
 .stButton > button:hover {
-    background-color: #7F0019; /* MUJI Red Hover */
+    background-color: #7F0019;
     color: #FFFFFF;
     border-color: #7F0019;
 }
 
 /* Expander & Cards */
 .streamlit-expanderHeader {
-    background-color: #FFFFFF;
-    border: 1px solid #E0E0E0;
+    background-color: #F8F8F8;
+    border: none;
     border-radius: 0px;
-    color: #333333;
+    color: #555555;
+    font-size: 0.9rem;
 }
 div[data-testid="stExpander"] {
-    border: none;
-    background-color: transparent;
+    border: 1px solid #EEEEEE;
+    border-radius: 0px;
+    background-color: #FFFFFF;
 }
 
-/* Note Box & Metadata Cards */
+/* Note Box & Metadata Cards (Paper-like) */
 .note-box {
-    background-color: #FFFFFF;
-    border: 1px solid #E0E0E0;
-    border-left: 4px solid #7F0019; /* MUJI Red Accent */
-    padding: 16px;
+    background-color: #FEFEFE;
+    border: 1px solid #EAEAEA;
+    border-top: 3px solid #7F0019; /* Top accent like a sticky note */
+    padding: 20px;
     font-family: 'Noto Sans JP', sans-serif;
-    color: #333333;
+    color: #444444;
     border-radius: 0px;
     margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
-/* Tags */
+/* Tags - Simple labels */
 .tag-badge {
     display: inline-block;
-    padding: 2px 8px;
-    margin: 2px;
-    background: #EFEFEF;
-    color: #333333;
-    font-size: 0.75rem;
-    border: 1px solid #CCCCCC;
-    border-radius: 0px; /* Flat */
+    padding: 4px 12px;
+    margin: 3px;
+    background: #F4F4F0;
+    color: #555555;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 0px;
 }
 
 /* Images */
 img {
-    border: 1px solid #E0E0E0;
+    border: none;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.05); /* Soft shadow */
 }
 
 /* Responsive Utilities */
@@ -874,7 +887,10 @@ else:
                     with c3:
                         # Notes (Primary Content)
                         st.caption("📝 要点・メモ")
-                        note_content = row['notes'] if row['notes'] else "（メモなし）"
-                        st.markdown(f"<div class='note-box'>{note_content}</div>", unsafe_allow_html=True)
+                        note_content = row['notes'] if isinstance(row['notes'], str) and row['notes'].strip() != 'nan' else "（メモなし）"
+                        if note_content == "（メモなし）":
+                             st.markdown(f"<div style='color:#999; font-style:italic; padding:10px;'>{note_content}</div>", unsafe_allow_html=True)
+                        else:
+                             st.markdown(f"<div class='note-box'>{note_content}</div>", unsafe_allow_html=True)
                 
                 st.markdown("<hr style='border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;'>", unsafe_allow_html=True)
