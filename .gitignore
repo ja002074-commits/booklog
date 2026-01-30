@@ -18,5 +18,7 @@ venv/
 # Environment
 .env
 
-# MacOS
-.DS_Store
+# Credentials
+service_account.json
+*.json
+*.db
