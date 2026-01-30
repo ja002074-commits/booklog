@@ -36,108 +36,114 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Custom CSS
+# Custom CSS (MUJI IR Style)
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500&family=Noto+Serif+JP:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap');
 
-/* Dark Intellectual Theme (Responsive) */
+/* Main Background - Clean White / High Quality Paper */
 .stApp {
-    background: linear-gradient(135deg, #1A2B3C 0%, #0F1722 100%);
-    color: #E2E8F0;
-    font-family: 'Inter', 'Noto Serif JP', sans-serif;
+    background-color: #FCFAF8; /* わずかに温かみのある白 */
+    color: #333333;
+    font-family: 'Noto Sans JP', 'Roboto', sans-serif;
 }
 
 /* Typography */
 h1, h2, h3 {
-    font-family: 'Playfair Display', 'Noto Serif JP', serif !important;
-    color: #F8F9FA !important;
-    text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+    font-family: 'Noto Sans JP', sans-serif !important;
+    font-weight: 700 !important;
+    color: #333333 !important;
+    letter-spacing: 0.05em;
 }
 
-/* Sidebar (Dark Glass) */
-section[data-testid="stSidebar"] {
-    background-color: rgba(26, 43, 60, 0.6);
-    backdrop-filter: blur(12px);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+h1 {
+    border-bottom: 2px solid #7F0019; /* MUJI Red Underline */
+    padding-bottom: 10px;
+    margin-bottom: 30px;
 }
+
+/* Sidebar - Kraft Paper / Cardboard nuance or Simple Light Grey */
+section[data-testid="stSidebar"] {
+    background-color: #F4F4F0; /* 無印っぽい薄いベージュ/グレー */
+    border-right: none;
+}
+
 section[data-testid="stSidebar"] h1, 
 section[data-testid="stSidebar"] h2, 
 section[data-testid="stSidebar"] h3, 
-section[data-testid="stSidebar"] label, 
-section[data-testid="stSidebar"] span, 
-section[data-testid="stSidebar"] p {
-    color: #E2E8F0 !important;
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span {
+    color: #333333 !important;
 }
 
-/* Sidebar Inputs - Removed to prevent artifacts */
+/* Sidebar Inputs */
+[data-testid="stSidebar"] input, [data-testid="stSidebar"] textarea, [data-testid="stSidebar"] select, [data-testid="stSidebar"] div[data-baseweb="select"] > div {
+    background-color: #FFFFFF;
+    color: #333333;
+    border: 1px solid #CCCCCC;
+    border-radius: 0px; /* Flat design */
+}
 
-
-/* Buttons */
+/* Buttons - MUJI Style (Flat, Red or Grey) */
 .stButton > button {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #E2E8F0;
-    border-radius: 4px;
-    font-family: 'Noto Serif JP', serif;
-    transition: all 0.3s ease;
+    background-color: #FFFFFF;
+    border: 1px solid #333333;
+    color: #333333;
+    border-radius: 0px; /* 角を丸くしない */
+    font-weight: bold;
+    transition: all 0.2s ease;
+    padding: 0.5rem 1rem;
 }
 .stButton > button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #E2E8F0;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    background-color: #7F0019; /* MUJI Red Hover */
+    color: #FFFFFF;
+    border-color: #7F0019;
 }
 
-/* Note Box (Dark Mode) */
+/* Expander & Cards */
+.streamlit-expanderHeader {
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 0px;
+    color: #333333;
+}
+div[data-testid="stExpander"] {
+    border: none;
+    background-color: transparent;
+}
+
+/* Note Box & Metadata Cards */
 .note-box {
-    background-color: rgba(255, 255, 255, 0.05); /* Dark translucent */
-    border-left: 3px solid #8FA2B6;
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-left: 4px solid #7F0019; /* MUJI Red Accent */
     padding: 16px;
-    border-radius: 4px;
-    font-family: 'Noto Serif JP', serif;
-    font-size: 0.95rem;
-    line-height: 1.8;
-    color: #F1F5F9;
-    white-space: pre-wrap;
-    margin-bottom: 8px;
-    min-height: 120px;
-}
-
-/* Divider */
-.book-row {
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding-bottom: 24px;
-    margin-bottom: 24px;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: #333333;
+    border-radius: 0px;
+    margin-bottom: 15px;
 }
 
 /* Tags */
 .tag-badge {
     display: inline-block;
-    padding: 3px 10px;
+    padding: 2px 8px;
     margin: 2px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    color: #CBD5E1;
+    background: #EFEFEF;
+    color: #333333;
     font-size: 0.75rem;
-    font-family: 'Inter', sans-serif;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid #CCCCCC;
+    border-radius: 0px; /* Flat */
 }
 
-/* Numerical Data */
-.asset-number {
-    font-family: 'Inter', sans-serif;
-    color: #F8F9FA;
-    font-weight: bold;
-}
-.caption {
-    font-size: 0.85rem;
-    color: #94A3B8;
+/* Images */
+img {
+    border: 1px solid #E0E0E0;
 }
 
 /* Responsive Utilities */
 @media (min-width: 768px) {
-    /* Safe targeting: Hide expander containing the marker */
     div[data-testid="stExpander"]:has(div#mobile-only-marker) {
         display: none !important;
     }
