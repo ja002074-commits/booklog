@@ -184,7 +184,12 @@ def get_books():
         
         # Ensure created_at consistency
         if 'created_at' in df.columns:
-            return df.sort_values("created_at", ascending=False)
+            df = df.sort_values("created_at", ascending=False)
+            
+        # Clean ISBNs (handle floats)
+        if 'isbn' in df.columns:
+            df['isbn'] = df['isbn'].astype(str).str.replace(r'\.0$', '', regex=True)
+            
         return df
     except Exception as e:
         # If sheet doesn't exist or other error
@@ -860,7 +865,8 @@ else:
                                         st.toast("画像を更新しました")
                                         time.sleep(1.0)
                                         st.rerun()
-                                    else: st.warning("画像が見つかりません")
+                                    else:
+                                        st.warning("画像が見つかりませんでした")
                             if st.button("削除", key=f"del_{row['id']}"):
                                 delete_book(row['id'])
                                 st.rerun()
