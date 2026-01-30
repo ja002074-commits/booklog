@@ -448,9 +448,10 @@ def render_preview_card(isbn, categories, key_suffix):
                         st.rerun()
 
 def search_books_by_title(query):
-    """Search books by title via Google Books API (Robust)"""
+    """Search books by title via Google Books API (Robust + Debug)"""
     url = "https://www.googleapis.com/books/v1/volumes"
     results = []
+    debug_log = ""
     
     try:
         # 1. Try with language restriction first
@@ -461,6 +462,7 @@ def search_books_by_title(query):
             "printType": "books"
         }
         r = requests.get(url, params=params, timeout=5)
+        debug_log += f"Stats 1: {r.status_code} | "
         
         # 2. If no results or error, try loose search (fallback)
         if r.status_code != 200 or not r.json().get("items"):
@@ -469,6 +471,7 @@ def search_books_by_title(query):
                 "maxResults": 20
             }
             r = requests.get(url, params=params, timeout=5)
+            debug_log += f"Stats 2: {r.status_code} | "
 
         if r.status_code == 200:
             data = r.json()
@@ -489,11 +492,15 @@ def search_books_by_title(query):
                         "cover_url": info.get("imageLinks", {}).get("thumbnail", ""),
                         "isbn": isbn
                     })
+            else:
+                debug_log += "No items found in JSON. "
+        else:
+            debug_log += f"Final Error: {r.text[:100]}"
+            
     except Exception as e:
-        # In a real app, log error. For now, we return empty list.
-        pass
+        debug_log += f"Exception: {str(e)}"
         
-    return results
+    return results, debug_log
 
 def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
@@ -514,7 +521,6 @@ def draw_pc_ui(df, categories):
                     info = fetch_book_info(clean_input)
                     if info:
                         st.session_state["preview_data"] = info
-                        # Ensure ISBN is passed correctly
                         if "isbn" not in st.session_state["preview_data"]: 
                              st.session_state["preview_data"]["isbn"] = clean_input
                         st.session_state["candidate_list"] = None
@@ -523,12 +529,12 @@ def draw_pc_ui(df, categories):
                         st.session_state["preview_data"] = None
                 else:
                     # Title Search
-                    candidates = search_books_by_title(search_input)
+                    candidates, debug_msg = search_books_by_title(search_input)
                     if candidates:
                         st.session_state["candidate_list"] = candidates
                         st.session_state["preview_data"] = None
                     else:
-                        st.sidebar.warning("見つかりませんでした")
+                        st.sidebar.warning(f"見つかりませんでした\n({debug_msg})")
                         st.session_state["candidate_list"] = None
                         
                 st.session_state["last_search_q"] = search_input
