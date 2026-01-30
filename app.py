@@ -809,7 +809,7 @@ def render_edit_form(row, categories, key_suffix):
         e_author = st.text_input("著者", row['author'])
         e_cat = st.selectbox("カテゴリ", categories, index=categories.index(row['category']) if row['category'] in categories else 0)
         e_status = st.selectbox("状態", ["未読", "読書中", "読了"], index=["未読", "読書中", "読了"].index(row['status']))
-        e_notes = st.text_area("メモ", row['notes'])
+        e_notes = st.text_input("ポイント", row['notes']) # Unified style with Title/Status
         
         col1, col2, col3 = st.columns(3)
         with col1:
