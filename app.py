@@ -161,10 +161,6 @@ img {
 </style>
 """, unsafe_allow_html=True)
 
-# ... [Include to_isbn10, get_conn, get_books, get_categories, add_category, delete_category, ...]
-# For brevity in this tool call, I will include the logic needed, but I assume user wants the FILE fully updated.
-# I will use write_to_file to do a FULL overwrite with the reorganized structure.
-
 def to_isbn10(isbn13):
     if not isbn13 or len(isbn13) != 13: return None
     body = isbn13[3:12]
@@ -322,12 +318,20 @@ def resolve_best_image_url(isbn):
     
     return ""
 
-# --- DRAWING FUNCTIONS ---
+def fetch_book_info(isbn):
+    """Unified Fetcher for Auto-Search"""
+    # 1. Try Google
+    data = get_google_books_data(isbn)
+    if data: return data
+    # 2. Try OpenBD
+    data = get_openbd_data(isbn)
+    if data: return data
+    return None
+
+# --- UI COMPONENTS ---
 
 def render_book_card(row, is_mobile=False):
-    """Render a single book card (Common logic, adaptable layout)"""
     with st.container():
-        # Card Layout
         if is_mobile:
             c_img, c_info = st.columns([1, 2])
         else:
@@ -337,21 +341,17 @@ def render_book_card(row, is_mobile=False):
             if row['cover_url']:
                 st.image(row['cover_url'], use_container_width=True)
             else:
-                st.markdown("<div style='height:120px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999;'>No Image</div>", unsafe_allow_html=True)
+                st.markdown("<div style='height:120px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999; font-size:0.8rem;'>No Image</div>", unsafe_allow_html=True)
         
         with c_info:
             st.markdown(f"### {row['title']}")
             st.caption(f"著者: {row['author']}")
-            
-            # Tags
             if isinstance(row['tags'], str) and row['tags']:
                 tags = [t.strip() for t in row['tags'].split(',')]
                 t_html = "".join([f"<span class='tag-badge'>{t}</span>" for t in tags])
                 st.markdown(t_html, unsafe_allow_html=True)
-            
             st.markdown(f"**{row['category']}** | {row['status']}")
             
-            # Edit Button key must be unique
             btn_key = f"edit_{row['id']}_{'m' if is_mobile else 'p'}"
             if st.button("編集", key=btn_key):
                 st.session_state["edit_target"] = row['id']
@@ -367,18 +367,67 @@ def render_book_card(row, is_mobile=False):
                      st.markdown(f"<div class='note-box'>{note_content}</div>", unsafe_allow_html=True)
 
         if is_mobile:
-            # Mobile: Notes appear below
              st.caption("要点・メモ")
              st.info(row['notes'] if isinstance(row['notes'], str) and row['notes'].strip() != 'nan' else "（メモなし）")
 
         st.markdown("---")
 
+def render_preview_card(isbn, categories, key_suffix):
+    """Show preview of book found via ISBN before adding"""
+    if "preview_data" in st.session_state and st.session_state["preview_data"]:
+        data = st.session_state["preview_data"]
+        st.info("✅ 書籍が見つかりました")
+        
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            if data.get("cover_url"):
+                st.image(data["cover_url"], width=100)
+            else:
+                st.write("No Image")
+        with col2:
+            st.markdown(f"**{data['title']}**")
+            st.caption(f"著者: {data['author']}")
+            
+            # Registration Form inside Preview
+            with st.form(key=f"confirm_add_{key_suffix}"):
+                c_cat = st.selectbox("カテゴリ", categories)
+                c_status = st.selectbox("状態", ["未読", "読書中", "読了"])
+                if st.form_submit_button("この本を登録する"):
+                    if add_book(data['title'], data['author'], c_cat, "", c_status, "", data['cover_url'], "", isbn):
+                        st.success("登録しました")
+                        del st.session_state["preview_data"]
+                        time.sleep(1)
+                        st.rerun()
+
 def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
     st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
     
-    # Sidebar Filters (PC)
-    search_q = st.sidebar.text_input("検索 (タイトル/著者)", key="pc_search")
+    # 1. PC: Auto-Search via ISBN
+    st.sidebar.markdown("#### 🔍 ISBN自動検索")
+    isbn_input = st.sidebar.text_input("ISBNを入力 (Enter)", key="pc_isbn_search")
+    
+    # Search Logic
+    if isbn_input:
+        # Avoid re-fetching if same ISBN
+        if "last_isbn" not in st.session_state or st.session_state["last_isbn"] != isbn_input:
+            with st.spinner("検索中..."):
+                info = fetch_book_info(isbn_input)
+                if info:
+                    st.session_state["preview_data"] = info
+                    st.session_state["last_isbn"] = isbn_input
+                else:
+                    st.sidebar.warning("見つかりませんでした")
+                    st.session_state["preview_data"] = None
+    
+    # Show Preview in Main Area if exists
+    if "preview_data" in st.session_state and st.session_state["preview_data"]:
+        render_preview_card(isbn_input, categories, "pc")
+        st.markdown("---")
+
+    # 2. Sidebar Filters
+    st.sidebar.markdown("#### 📂 フィルタ")
+    search_q = st.sidebar.text_input("キーワード検索", key="pc_search")
     cat_filter = st.sidebar.multiselect("カテゴリ", categories, key="pc_cat_filter")
     
     # Filter Logic
@@ -391,46 +440,47 @@ def draw_pc_ui(df, categories):
     # Main Content
     st.markdown(f"# 蔵書一覧 ({len(filtered)}冊)")
     
-    # PC: Grid or List? List is better for "Report Style"
     for idx, row in filtered.iterrows():
-        # Check if editing
         if st.session_state.get("edit_target") == row['id']:
             render_edit_form(row, categories, key_suffix="pc")
         else:
             render_book_card(row, is_mobile=False)
             
-    # PC: Add Book Form in Expander
-    with st.expander("➕ 新しい本を追加する"):
+    # PC: Manual Add (Collapsed)
+    with st.expander("➕ 手動登録フォーム"):
         render_add_book_form(categories, key_suffix="pc")
 
 def draw_mobile_ui(df, categories):
     """Render Mobile Exclusive UI"""
-    # Mobile Header: Simple
     st.markdown("### 📱 読書録")
     
-    # Mobile: Barcode Scan Button (Only on Mobile!)
+    # 1. Mobile: Camera Scanner (TOP PRIORITY)
     if PYZBAR_AVAILABLE:
-        scan_active = st.checkbox("📷 バーコードで追加", key="mob_scan_toggle")
-        if scan_active:
-            img_file = st.camera_input("バーコードを写してください", key="mob_cam")
-            if img_file:
-                # Decode logic (simplified)
-                try:
-                    img = Image.open(img_file)
-                    decoded = decode(img)
-                    if decoded:
-                        isbn = decoded[0].data.decode('utf-8')
-                        st.success(f"ISBN: {isbn}")
-                        # Auto-fill logic could go here
-                except:
-                    st.error("読み取れませんでした")
-
-    # Mobile Filter (Collapsible)
+        st.markdown("#### 📷 バーコード読取")
+        img_file = st.camera_input("バーコードを写してください", key="mob_cam")
+        if img_file:
+            try:
+                img = Image.open(img_file)
+                decoded = decode(img)
+                if decoded:
+                    isbn = decoded[0].data.decode('utf-8')
+                    st.success(f"ISBN: {isbn}")
+                    # Auto-check logic
+                    info = fetch_book_info(isbn)
+                    if info:
+                        st.session_state["preview_data"] = info
+                        # Mobile Preview
+                        render_preview_card(isbn, categories, "mob_cam")
+            except:
+                st.error("読み取れませんでした")
+    
+    # 2. Results / List
+    st.markdown("---")
+    
     with st.expander("🔍 検索・フィルタ"):
         m_search = st.text_input("キーワード", key="mob_search")
         m_cat = st.selectbox("カテゴリ", ["すべて"] + categories, key="mob_cat")
     
-    # Filter
     filtered = df.copy()
     if m_search:
         filtered = filtered[filtered.apply(lambda r: m_search in str(r.values), axis=1)]
@@ -439,14 +489,12 @@ def draw_mobile_ui(df, categories):
 
     st.caption(f"{len(filtered)} 冊")
     
-    # Mobile List
     for idx, row in filtered.iterrows():
         if st.session_state.get("edit_target") == row['id']:
             render_edit_form(row, categories, key_suffix="mob")
         else:
             render_book_card(row, is_mobile=True)
             
-    # Mobile Add Button (Always visible at bottom? or Top?)
     with st.expander("➕ 手動登録"):
         render_add_book_form(categories, key_suffix="mob")
 
@@ -459,14 +507,16 @@ def render_edit_form(row, categories, key_suffix):
         e_status = st.selectbox("状態", ["未読", "読書中", "読了"], index=["未読", "読書中", "読了"].index(row['status']))
         e_notes = st.text_area("メモ", row['notes'])
         
-        if st.form_submit_button("保存"):
-            update_book(row['id'], e_title, e_author, e_cat, row['tags'], e_status, e_notes, row['read_date'])
-            st.session_state["edit_target"] = None
-            st.rerun()
-            
-        if st.form_submit_button("キャンセル"):
-            st.session_state["edit_target"] = None
-            st.rerun()
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.form_submit_button("保存"):
+                update_book(row['id'], e_title, e_author, e_cat, row['tags'], e_status, e_notes, row['read_date'])
+                st.session_state["edit_target"] = None
+                st.rerun()
+        with col2:
+            if st.form_submit_button("キャンセル"):
+                st.session_state["edit_target"] = None
+                st.rerun()
 
 def render_add_book_form(categories, key_suffix):
     with st.form(key=f"add_book_{key_suffix}"):
@@ -477,23 +527,25 @@ def render_add_book_form(categories, key_suffix):
         n_status = st.selectbox("状態", ["未読", "読書中", "読了"])
         
         if st.form_submit_button("登録"):
-            if add_book(n_title, n_author, n_cat, "", n_status, "", "", "", n_isbn):
+            # Check if ISBN is provided, try to get cover
+            c_url = ""
+            if n_isbn:
+                c_url = resolve_best_image_url(n_isbn)
+                
+            if add_book(n_title, n_author, n_cat, "", n_status, "", c_url, "", n_isbn):
                 st.success("登録しました")
                 time.sleep(1)
                 st.rerun()
 
 # --- Main Application Logic ---
 def main():
-    # Load Data
     df = get_books()
     categories = get_categories()
     
-    # Wrapper for PC
     st.markdown('<div class="pc-only">', unsafe_allow_html=True)
     draw_pc_ui(df, categories)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Wrapper for Mobile
     st.markdown('<div class="mobile-only">', unsafe_allow_html=True)
     draw_mobile_ui(df, categories)
     st.markdown('</div>', unsafe_allow_html=True)
