@@ -567,30 +567,87 @@ def draw_pc_ui(df, categories):
     if st.session_state.get("candidate_list"):
         st.markdown(f"### 📚 検索結果 ({len(st.session_state['candidate_list'])}件)")
         
-        # Grid layout for candidates (3 columns)
+        # CSS for Uniform Cards
+        st.markdown("""
+        <style>
+        .search-card-content {
+            height: 280px; /* Fixed height for content above button */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+        .search-card-img-box {
+            height: 140px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        .search-card-img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        .search-card-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            line-height: 1.3;
+            margin-bottom: 4px;
+            height: 2.6em; /* 2 lines max */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .search-card-meta {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Responsive-ish Grid: 5 columns for PC to fit more
         candidates = st.session_state["candidate_list"]
-        cols = st.columns(3) 
+        cols = st.columns(5) 
         
         for i, book in enumerate(candidates):
-            with cols[i % 3]:
+            with cols[i % 5]:
                 with st.container(border=True):
-                    # Image
-                    img = book.get("cover_url") if book.get("cover_url") else PLACEHOLDER_IMG
-                    try: st.image(img, use_container_width=True)
-                    except: st.image(PLACEHOLDER_IMG, use_container_width=True)
-                    
-                    # Info
-                    st.markdown(f"<div style='font-weight:bold; font-size:0.95rem; line-height:1.2; margin-bottom:4px;'>{book['title']}</div>", unsafe_allow_html=True)
-                    st.caption(f"{book['author']}")
+                    # Prepare Content
+                    img_src = book.get("cover_url") if book.get("cover_url") else PLACEHOLDER_IMG
+                    title = book['title']
+                    author = book['author'] if book['author'] else "著者不明"
                     
                     pub_info = []
                     if book.get('publisher'): pub_info.append(book['publisher'])
                     if book.get('publishedDate'): pub_info.append(book['publishedDate'])
-                    st.markdown(f"<div style='font-size:0.75rem; color:#666;'>{' / '.join(pub_info)}</div>", unsafe_allow_html=True)
+                    meta = ' / '.join(pub_info) if pub_info else "&nbsp;"
                     
-                    if st.button("これを選択", key=f"sel_cand_{i}", use_container_width=True):
+                    # Custom HTML for Uniform Layout
+                    html_content = f"""
+                    <div class="search-card-content">
+                        <div class="search-card-img-box">
+                            <img src="{img_src}" class="search-card-img">
+                        </div>
+                        <div class="search-card-title" title="{title}">{title}</div>
+                        <div class="search-card-meta">👤 {author}</div>
+                        <div class="search-card-meta">🏢 {meta}</div>
+                    </div>
+                    """
+                    st.markdown(html_content, unsafe_allow_html=True)
+                    
+                    # Native Button (placed outside fixed height div, aligns at bottom)
+                    if st.button("選択", key=f"sel_cand_{i}", use_container_width=True):
                         st.session_state["preview_data"] = book
-                        st.session_state["candidate_list"] = None # Clear list after selection
+                        st.session_state["candidate_list"] = None
                         st.rerun()
         st.markdown("---")
 
