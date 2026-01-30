@@ -662,7 +662,13 @@ def search_books_by_title(query, start_index=0):
 
 def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
-    st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
+    # Logo (PIVOT Style)
+    try:
+        st.sidebar.image("logo_text.png", use_container_width=True)
+    except:
+        st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
+    
+    st.sidebar.markdown("---")
     
     # 1. PC: Search via ISBN or Title
     st.sidebar.markdown("#### 🔍 新規登録検索")
