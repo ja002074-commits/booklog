@@ -539,30 +539,38 @@ def search_books_by_title(query, start_index=0):
                 "isbn": isbn
             })
         
-        # HYBRID TIERED SORTING
-        # Tier 1 (S-Rank): Query in Title AND Recent (<= 5 years) -> Score 2000+
-        # Tier 2 (A-Rank): Query in Title (Older)                -> Score 1000+
-        # Tier 3 (B-Rank): Query NOT in Title (Fuzzy)            -> Score 0+
+        # HYBRID TIERED SORTING (Multi-Keyword + Author Support)
+        # Tier 1 (S-Rank): All Keywords in (Title+Author) AND Recent (<= 5 years) -> Score 2000+
+        # Tier 2 (A-Rank): All Keywords in (Title+Author) (Older)                -> Score 1000+
+        # Tier 3 (B-Rank): Partial Title Match / Fuzzy                           -> Score 0+
         def tiered_score(book):
             score = 0
             
-            # 1. Title Match Check (Case insensitive)
-            # Remove spaces for cleaner matching (e.g. "良問 の 風" vs "良問の風")
-            clean_query = query.replace(" ", "").replace("　", "").lower()
-            clean_title = book['title'].replace(" ", "").replace("　", "").lower()
+            # Prepare Normalized Strings
+            # Split query by space (half or full width)
+            keywords = re.split(r'[ 　]+', query.strip().lower())
+            keywords = [k for k in keywords if k] # Remove empty
             
-            match_ratio = difflib.SequenceMatcher(None, clean_query, clean_title).ratio()
+            # Target: Title + Author (Normalized)
+            target_text = (book['title'] + " " + book['author']).lower()
             
-            if clean_query in clean_title:
-                # Exact Keyword Match Priority
-                score += 1000
-                # Recency Boost for S-Rank
-                if book['year'] >= (current_year - 5):
+            # 1. Multi-Keyword Check
+            all_keywords_found = all(k in target_text for k in keywords)
+            
+            if all_keywords_found:
+                 # S/A Rank: All keywords exist in Title OR Author
+                 score += 1000
+                 
+                 # Recency Check (S-Rank)
+                 if book['year'] >= (current_year - 5):
                      score += 1000
             else:
-                # Fuzzy Match Bonus (up to 500)
+                # B-Rank: Fuzzy Match on Title Only (Fall back to standard title similarity)
+                clean_query = query.replace(" ", "").replace("　", "").lower()
+                clean_title = book['title'].replace(" ", "").replace("　", "").lower()
+                match_ratio = difflib.SequenceMatcher(None, clean_query, clean_title).ratio()
                 score += (match_ratio * 500)
-            
+
             # 2. Base Year Score (Newer is always slightly better within same Tier)
             # 2025 -> 20.25 pts
             score += (book['year'] / 100.0)
