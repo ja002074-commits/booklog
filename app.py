@@ -12,6 +12,7 @@ import re
 import qrcode
 import time
 from streamlit_gsheets import GSheetsConnection
+import difflib
 
 try:
     from pyzbar.pyzbar import decode
