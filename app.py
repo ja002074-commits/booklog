@@ -88,6 +88,13 @@ div[data-baseweb="input"] > div {
     box-shadow: none !important;
 }
 
+/* CRITICAL FIX: Remove internal borders/spacers in SelectBox */
+div[data-baseweb="select"] > div > div {
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 /* Remove default focus glows and apply calm accent */
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within {
