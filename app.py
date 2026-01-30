@@ -448,17 +448,29 @@ def render_preview_card(isbn, categories, key_suffix):
                         st.rerun()
 
 def search_books_by_title(query):
-    """Search books by title via Google Books API"""
+    """Search books by title via Google Books API (Improved)"""
     try:
-        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=5"
-        r = requests.get(url, timeout=5)
+        # Use params for proper encoding and add language restriction
+        url = "https://www.googleapis.com/books/v1/volumes"
+        params = {
+            "q": query,
+            "maxResults": 20,        # Increase candidates
+            "langRestrict": "ja",    # Favor Japanese results
+            "printType": "books"     # Exclude magazines/etc if desired
+        }
+        r = requests.get(url, params=params, timeout=5)
+        
         if r.status_code == 200:
             data = r.json()
             results = []
             if "items" in data:
                 for item in data["items"]:
                     info = item.get("volumeInfo", {})
-                    # Get ISBN if available
+                    
+                    # Filtering: Skip items with no useful title
+                    if not info.get("title"): continue
+                    
+                    # Get ISBN
                     isbn = ""
                     for ident in info.get("industryIdentifiers", []):
                         if ident["type"] == "ISBN_13": isbn = ident["identifier"]
