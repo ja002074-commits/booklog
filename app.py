@@ -839,7 +839,7 @@ else:
                         
                         # Badges
                         st.markdown(f"<span class='tag-badge'>{row['category']}</span> <span class='tag-badge'>{row['status']}</span>", unsafe_allow_html=True)
-                        if row['tags']:
+                        if isinstance(row['tags'], str) and row['tags'].strip():
                             tags_html = "".join([f"<span class='tag-badge'>{t.strip()}</span>" for t in row['tags'].split(',')])
                             st.markdown(f"<div style='margin-top:4px;'>{tags_html}</div>", unsafe_allow_html=True)
                             
