@@ -340,15 +340,35 @@ def resolve_best_image_url(isbn):
     
     return ""
 
+def get_amazon_image_url(isbn):
+    """Generate Amazon Image URL from ISBN"""
+    isbn = str(isbn).replace('-', '').strip()
+    if len(isbn) == 13:
+        isbn10 = to_isbn10(isbn)
+        if isbn10: return f"https://images-na.ssl-images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
+    elif len(isbn) == 10:
+        return f"https://images-na.ssl-images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
+    return ""
+
 def fetch_book_info(isbn):
     """Unified Fetcher for Auto-Search"""
+    data = None
+    
     # 1. Try Google
-    data = get_google_books_data(isbn)
-    if data: return data
-    # 2. Try OpenBD
-    data = get_openbd_data(isbn)
-    if data: return data
-    return None
+    g_data = get_google_books_data(isbn)
+    if g_data:
+        data = g_data
+    else:
+        # 2. Try OpenBD
+        o_data = get_openbd_data(isbn)
+        if o_data:
+            data = o_data
+
+    # If we found metadata but no cover, try Amazon fallback
+    if data and not data.get("cover_url"):
+         data["cover_url"] = get_amazon_image_url(isbn)
+         
+    return data
 
 # --- UI COMPONENTS ---
 
