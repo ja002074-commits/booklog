@@ -442,7 +442,7 @@ def render_preview_card(isbn, categories, key_suffix):
                 c_status = st.selectbox("状態", ["未読", "読書中", "読了"])
                 if st.form_submit_button("この本を登録する"):
                     if add_book(data['title'], data['author'], c_cat, "", c_status, "", data['cover_url'], "", isbn):
-        st.success("登録しました")
+                        st.success("登録しました")
                         del st.session_state["preview_data"]
                         time.sleep(1)
                         st.rerun()
