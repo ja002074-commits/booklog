@@ -39,21 +39,22 @@ st.markdown("""
 st.markdown("""
 <style>
 /* 1. Global Gradient Background (PIVOT Style) & Atmosphere */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 .stApp {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Deep Purple-Blue Gradient */
     background-attachment: fixed;
     color: #ffffff;
-    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    font-family: "Montserrat", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
     letter-spacing: 0.03em;
 }
 
 /* 2. Glassmorphism Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: rgba(255, 255, 255, 0.95) !important; /* High opacity white */
-    border-right: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+    background-color: rgba(255, 255, 255, 0.9) !important; /* Slightly transparent white */
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
 }
 /* Force Sidebar text to be dark */
 section[data-testid="stSidebar"] h1,
@@ -63,19 +64,22 @@ section[data-testid="stSidebar"] span,
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
     color: #333333 !important;
+    font-family: "Montserrat", "Noto Sans JP", sans-serif !important;
 }
 
 /* 3. Main Content Headers */
 h1, h2, h3 {
-    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", serif !important;
+    font-family: "Montserrat", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif !important;
     color: #ffffff !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important; /* Bold like PIVOT */
     text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 h1 {
-    font-size: 2.2rem !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 2.5rem !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
     padding-bottom: 15px;
     margin-bottom: 30px;
 }
@@ -88,6 +92,7 @@ h1 {
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 12px !important;
     backdrop-filter: blur(12px);
+    font-family: "Montserrat", "Noto Sans JP", sans-serif;
 }
 /* Sidebar Inputs Override (Dark Text) */
 section[data-testid="stSidebar"] .stTextInput input, 
@@ -99,13 +104,15 @@ section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
 
 /* Labels */
 .stMarkdown label, .stMarkdown p {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 500;
 }
 /* Expander (Glassy) */
 .streamlit-expanderHeader {
     background-color: rgba(255, 255, 255, 0.1) !important;
     color: #ffffff !important;
     border-radius: 8px !important;
+    font-weight: 600;
 }
 div[data-testid="stExpander"] {
     background-color: rgba(0,0,0,0.1) !important;
@@ -115,139 +122,101 @@ div[data-testid="stExpander"] {
 
 /* 5. Buttons (Vibrant Gradient) */
 .stButton button {
-    background: linear-gradient(90deg, #ff8a00, #e52e71);
+    background: linear-gradient(90deg, #ff8a00, #e52e71) !important; /* PIVOT Accent Colors */
     color: white !important;
     border: none !important;
-    border-radius: 25px !important;
-    font-weight: bold !important;
-    padding: 0.5rem 1.5rem !important;
-    box-shadow: 0 4px 15px rgba(229, 46, 113, 0.4);
-    transition: all 0.3s ease;
+    border-radius: 30px !important;
+    font-weight: 700 !important;
+    padding: 0.6rem 2rem !important;
+    box-shadow: 0 4px 15px rgba(229, 46, 113, 0.4) !important;
+    font-family: "Montserrat", sans-serif !important;
+    transition: all 0.3s ease !important;
+    letter-spacing: 0.05em !important;
 }
 .stButton button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(229, 46, 113, 0.6);
+    box-shadow: 0 6px 20px rgba(229, 46, 113, 0.6) !important;
 }
 
-/* 3. ROBUST Device Separation Logic using :has() */
-/* By default, hide nothing. Then selectively hide based on marker presence. */
-
-/* Mobile View: Width < 768px */
-@media (max-width: 767px) {
-    /* Hide any container that has the PC Marker */
-    div[data-testid="stVerticalBlock"]:has(div.pc-marker) {
-        display: none !important;
-    }
-    /* Ensure Mobile Marker container is visible */
-    div[data-testid="stVerticalBlock"]:has(div.mobile-marker) {
-        display: flex !important;
-        flex-direction: column;
-    }
-    
-    .stApp { padding-top: 10px; }
-    h1 { font-size: 1.5rem !important; }
-}
-
-/* PC View: Width >= 768px */
-@media (min-width: 768px) {
-    /* Hide any container that has the Mobile Marker */
-    div[data-testid="stVerticalBlock"]:has(div.mobile-marker) {
-        display: none !important;
-    }
-    /* Ensure PC Marker container is visible */
-    div[data-testid="stVerticalBlock"]:has(div.pc-marker) {
-        display: flex !important;
-        flex-direction: column;
-    }
-}
-
-/* Markers are invisible */
-.pc-marker, .mobile-marker {
-    display: none;
-}
-
-/* 4. Common Inputs Styling (MUJI Minimalist) */
-div[data-baseweb="select"] > div,
-div[data-baseweb="input"] > div {
-    background-color: #FFFFFF !important;
-    border: 1px solid #CCCCCC !important;
-    border-radius: 4px !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-}
-
-input, textarea, select {
-    border: none !important; 
-    box-shadow: none !important;
-    background-color: transparent !important;
-}
-
-div[data-baseweb="select"] > div > div, 
-div[data-baseweb="select"] > div span {
-    border: none !important;
-    background-color: transparent !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-}
-
-div[data-baseweb="select"] > div > div:last-child > div:first-child {
-     display: none !important;
-}
-
-div[data-baseweb="input"] > div:focus-within,
-div[data-baseweb="select"] > div:focus-within {
-    border-color: #8C7B70 !important;
-    outline: 1px solid #8C7B70 !important;
-}
-
-div[data-baseweb="select"] svg {
-    fill: #999999 !important;
-}
-
-/* 5. Buttons */
-.stButton > button {
-    background-color: #FFFFFF;
-    border: 1px solid #C0C0C0;
-    color: #555555;
-    border-radius: 4px;
-    font-weight: 400;
-    padding: 0.5rem 1.2rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.stButton > button:hover {
-    background-color: #8C7B70;
-    color: #FFFFFF;
-    border-color: #8C7B70;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-/* 6. Layout */
-.note-box {
-    background: linear-gradient(to right bottom, #FFFFFF, #FAFAFA);
-    border: 1px solid #E0E0E0;
-    border-left: 4px solid #9E2A2B;
+/* 6. GLASS CARD STYLING */
+.glass-card {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
     padding: 20px;
-    color: #444444;
-    border-radius: 4px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
-
+.glass-card-img-box {
+    width: 120px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.glass-card-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+.glass-card-content {
+    flex-grow: 1;
+    color: #ffffff;
+}
+.glass-card-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    line-height: 1.3;
+}
+.glass-card-author {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 10px;
+}
 .tag-badge {
-    background-color: #F0EFE9;
-    color: #555555;
-    border: 1px solid #E0E0E0;
-    border-radius: 4px;
+    background: rgba(255,255,255,0.2);
     padding: 3px 10px;
-    font-size: 0.8rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-right: 5px;
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.3);
+    display: inline-block;
+}
+.note-box {
+    background: rgba(0,0,0,0.25);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #ff8a00;
+    color: #f0f0f0;
+    font-size: 0.9rem;
+    margin-top: 10px;
 }
 
-img {
-    border-radius: 2px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Soft floating shadow */
-    border: none;
+/* Mobile Adjustments */
+@media (max-width: 767px) {
+    .glass-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .glass-card-img-box {
+        width: 140px;
+        margin-bottom: 15px;
+    }
+    .note-box {
+        text-align: left;
+    }
 }
+
+/* Markers */
+.pc-marker, .mobile-marker { display: none; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -444,48 +413,59 @@ def fetch_book_info(isbn):
 PLACEHOLDER_IMG = "https://placehold.co/400x600/e0e0e0/999999?text=No+Image"
 
 def render_book_card(row, is_mobile=False):
-    with st.container():
-        if is_mobile:
-            c_img, c_info = st.columns([1, 2])
-        else:
-            c_img, c_info, c_note = st.columns([1, 2, 3])
-            
-        with c_img:
-            # Robust Image Rendering
-            img_url = row['cover_url'] if row['cover_url'] and str(row['cover_url']) != 'nan' else PLACEHOLDER_IMG
-            try:
-                st.image(img_url, use_container_width=True)
-            except:
-                st.image(PLACEHOLDER_IMG, use_container_width=True)
-        
-        with c_info:
-            st.markdown(f"### {row['title']}")
-            st.caption(f"著者: {row['author']}")
-            if isinstance(row['tags'], str) and row['tags']:
-                tags = [t.strip() for t in row['tags'].split(',')]
-                t_html = "".join([f"<span class='tag-badge'>{t}</span>" for t in tags])
-                st.markdown(t_html, unsafe_allow_html=True)
-            st.markdown(f"**{row['category']}** | {row['status']}")
-            
-            btn_key = f"edit_{row['id']}_{'m' if is_mobile else 'p'}"
-            if st.button("編集", key=btn_key):
-                st.session_state["edit_target"] = row['id']
-                st.rerun()
+    # Prepare Data for HTML
+    img_url = row['cover_url'] if row['cover_url'] and str(row['cover_url']) != 'nan' else PLACEHOLDER_IMG
+    title = row['title']
+    author = row['author']
+    category = row['category']
+    status = row['status']
+    
+    # Process Tags
+    tags_html = ""
+    if isinstance(row['tags'], str) and row['tags']:
+        tags = [t.strip() for t in row['tags'].split(',')]
+        tags_html = "".join([f"<span class='tag-badge'>{t}</span>" for t in tags])
+    
+    # Process Notes
+    note_content = row['notes'] if isinstance(row['notes'], str) and row['notes'].strip() != 'nan' else ""
+    note_html = ""
+    if note_content:
+        note_html = f"<div class='note-box'>📝 {note_content}</div>"
+    else:
+        note_html = "<div style='margin-top:10px; opacity:0.6; font-size:0.8rem;'>（メモなし）</div>"
 
-        if not is_mobile:
-            with c_note:
-                st.caption("要点・メモ")
-                note_content = row['notes'] if isinstance(row['notes'], str) and row['notes'].strip() != 'nan' else "（メモなし）"
-                if note_content == "（メモなし）":
-                     st.markdown(f"<div style='color:#999; font-style:italic;'>{note_content}</div>", unsafe_allow_html=True)
-                else:
-                     st.markdown(f"<div class='note-box'>{note_content}</div>", unsafe_allow_html=True)
-
-        if is_mobile:
-             st.caption("要点・メモ")
-             st.info(row['notes'] if isinstance(row['notes'], str) and row['notes'].strip() != 'nan' else "（メモなし）")
-
-        st.markdown("---")
+    # Construct Glass Card HTML
+    card_html = f"""
+    <div class="glass-card">
+        <div class="glass-card-img-box">
+            <img src="{img_url}" class="glass-card-img">
+        </div>
+        <div class="glass-card-content">
+            <div class="glass-card-title">{title}</div>
+            <div class="glass-card-author">👤 {author}</div>
+            <div style="margin-bottom:8px;">
+                <span style="font-weight:600; font-size:0.9rem;">{category}</span> 
+                <span style="opacity:0.7;"> | {status}</span>
+            </div>
+            <div style="margin-bottom:10px;">{tags_html}</div>
+            {note_html}
+        </div>
+    </div>
+    """
+    
+    # Render HTML
+    st.markdown(card_html, unsafe_allow_html=True)
+    
+    # Edit Button (Placed nicely aligned or below)
+    # To align it well, we can use a small container or col, but plain button is OK.
+    # We'll use a unique key.
+    btn_key = f"edit_{row['id']}_{'m' if is_mobile else 'p'}"
+    
+    # Use a small layout to push button to right? Or just simple.
+    # Let's simple left align for now.
+    if st.button("編集", key=btn_key):
+        st.session_state["edit_target"] = row['id']
+        st.rerun()
 
 def render_preview_card(isbn, categories, key_suffix):
     """Show preview of book found via ISBN before adding"""
