@@ -36,36 +36,50 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Custom CSS (MUJI IR Style)
+# Custom CSS (MUJI Kraft Paper Style)
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@700&display=swap');
 
-/* Main Background - Clean White / High Quality Paper */
+/* Main Background - Kraft Paper Texture effect */
 .stApp {
-    background-color: #FCFAF8; /* わずかに温かみのある白 */
-    color: #333333;
+    background-color: #EFE9DC;
+    background-image: 
+        radial-gradient(#D6C6AF 1px, transparent 1px), 
+        radial-gradient(#D6C6AF 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    color: #4A2323; /* Dark reddish brown text */
     font-family: 'Noto Sans JP', 'Roboto', sans-serif;
 }
 
-/* Typography */
-h1, h2, h3 {
+/* Typography - Bold & Reddish Brown */
+h1, h2, h3, h4, h5, h6 {
     font-family: 'Noto Sans JP', sans-serif !important;
     font-weight: 700 !important;
-    color: #333333 !important;
+    color: #7F0019 !important; /* MUJI Wine Red */
     letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 h1 {
-    border-bottom: 2px solid #7F0019; /* MUJI Red Underline */
-    padding-bottom: 10px;
+    font-family: 'Roboto', sans-serif !important; /* English Headings */
+    font-size: 3rem !important;
+    border-bottom: 4px solid #7F0019;
+    padding-bottom: 15px;
     margin-bottom: 30px;
+    line-height: 1.1;
 }
 
-/* Sidebar - Kraft Paper / Cardboard nuance or Simple Light Grey */
+/* Sidebar - Slightly darker Kraft */
 section[data-testid="stSidebar"] {
-    background-color: #F4F4F0; /* 無印っぽい薄いベージュ/グレー */
-    border-right: none;
+    background-color: #E6DEC9;
+    background-image: 
+        radial-gradient(#D1C1A8 1px, transparent 1px), 
+        radial-gradient(#D1C1A8 1px, transparent 1px);
+    background-size: 16px 16px;
+    background-position: 0 0, 8px 8px;
+    border-right: 1px solid #D4C5A9;
 }
 
 section[data-testid="stSidebar"] h1, 
@@ -74,85 +88,94 @@ section[data-testid="stSidebar"] h3,
 section[data-testid="stSidebar"] p,
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] span {
-    color: #333333 !important;
+    color: #4A2323 !important;
 }
 
-/* Main Area Inputs (Search, filters) - Minimalist & Flat */
+/* Main Area Inputs - White Paper Cutout style */
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div,
 input, textarea, select {
-    background-color: #FFFFFF !important;
-    color: #333333 !important;
-    border: 1px solid #DDDDDD !important;
-    border-radius: 0px !important; /* 角ばらせる */
+    background-color: #FCFAF8 !important; /* Clean White Paper */
+    color: #4A2323 !important;
+    border: 2px solid #7F0019 !important; /* Bold Red Border */
+    border-radius: 0px !important;
+    font-weight: 500;
 }
 
 /* Focus states */
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within {
-    border-color: #7F0019 !important;
-    box-shadow: none !important;
+    box-shadow: 4px 4px 0px rgba(127, 0, 25, 0.2) !important;
 }
 
-/* Buttons - MUJI Style (Flat, Red or Grey) */
+/* Buttons - Stamp / Label Style */
 .stButton > button {
-    background-color: #FFFFFF;
-    border: 1px solid #AAAAAA;
-    color: #333333;
+    background-color: #7F0019;
+    border: none;
+    color: #FFFFFF;
     border-radius: 0px;
-    font-weight: 500;
-    padding: 0.5rem 1.5rem;
-    box-shadow: none;
+    font-weight: 700;
+    padding: 0.6rem 2rem;
+    letter-spacing: 0.1em;
+    box-shadow: 3px 3px 0px #4A2323;
+    transition: all 0.1s ease;
 }
 .stButton > button:hover {
-    background-color: #7F0019;
+    background-color: #99001E;
     color: #FFFFFF;
-    border-color: #7F0019;
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px #4A2323;
+}
+.stButton > button:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
 }
 
-/* Expander & Cards */
+/* Expander - Kraft Card */
 .streamlit-expanderHeader {
-    background-color: #F8F8F8;
-    border: none;
+    background-color: #E6DEC9;
+    border: 1px solid #7F0019;
+    color: #7F0019;
+    font-weight: bold;
     border-radius: 0px;
-    color: #555555;
-    font-size: 0.9rem;
 }
 div[data-testid="stExpander"] {
-    border: 1px solid #EEEEEE;
+    border: 1px solid #7F0019;
+    border-top: none;
     border-radius: 0px;
-    background-color: #FFFFFF;
+    background-color: #FCFAF8;
 }
 
-/* Note Box & Metadata Cards (Paper-like) */
+/* Note Box - Memo Pad Style */
 .note-box {
-    background-color: #FEFEFE;
-    border: 1px solid #EAEAEA;
-    border-top: 3px solid #7F0019; /* Top accent like a sticky note */
+    background-color: #FCFAF8;
+    border: 1px solid #D4C5A9;
+    border-left: 6px solid #7F0019; 
     padding: 20px;
     font-family: 'Noto Sans JP', sans-serif;
-    color: #444444;
+    color: #4A2323;
     border-radius: 0px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    margin-bottom: 20px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
 }
 
-/* Tags - Simple labels */
+/* Tags - Recycled Paper Labels */
 .tag-badge {
     display: inline-block;
     padding: 4px 12px;
     margin: 3px;
-    background: #F4F4F0;
-    color: #555555;
+    background: #D4C5A9;
+    color: #4A2323;
+    font-weight: 600;
     font-size: 0.8rem;
-    border: none;
+    border: 1px solid #4A2323;
     border-radius: 0px;
 }
 
-/* Images */
+/* Images - Photo Frame */
 img {
-    border: none;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.05); /* Soft shadow */
+    border: 4px solid #FCFAF8;
+    box-shadow: 3px 3px 10px rgba(74, 35, 35, 0.2);
 }
 
 /* Responsive Utilities */
