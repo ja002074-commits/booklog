@@ -38,28 +38,95 @@ st.markdown("""
 # Custom CSS with ROBUST Device Separation
 st.markdown("""
 <style>
-/* 1. Typography & Atmosphere */
+/* 1. Global Gradient Background (PIVOT Style) & Atmosphere */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 .stApp {
-    background: linear-gradient(180deg, #FDFBF7 0%, #F2F0EB 100%);
-    color: #444444;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Deep Purple-Blue Gradient */
+    background-attachment: fixed;
+    color: #ffffff;
     font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
     letter-spacing: 0.03em;
 }
 
-/* 2. Headings */
+/* 2. Glassmorphism Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: rgba(255, 255, 255, 0.95) !important; /* High opacity white */
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+}
+/* Force Sidebar text to be dark */
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+    color: #333333 !important;
+}
+
+/* 3. Main Content Headers */
 h1, h2, h3 {
     font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", serif !important;
-    color: #333333 !important;
-    font-weight: 500 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 h1 {
     font-size: 2.2rem !important;
-    border-bottom: 1px solid #D8D2C0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     padding-bottom: 15px;
     margin-bottom: 30px;
+}
+
+/* 4. Glassy Inputs (Main Area) */
+/* Text Input, Selectbox, Text Area */
+.stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(12px);
+}
+/* Sidebar Inputs Override (Dark Text) */
+section[data-testid="stSidebar"] .stTextInput input, 
+section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Labels */
+.stMarkdown label, .stMarkdown p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+/* Expander (Glassy) */
+.streamlit-expanderHeader {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+}
+div[data-testid="stExpander"] {
+    background-color: rgba(0,0,0,0.1) !important;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 5. Buttons (Vibrant Gradient) */
+.stButton button {
+    background: linear-gradient(90deg, #ff8a00, #e52e71);
+    color: white !important;
+    border: none !important;
+    border-radius: 25px !important;
+    font-weight: bold !important;
+    padding: 0.5rem 1.5rem !important;
+    box-shadow: 0 4px 15px rgba(229, 46, 113, 0.4);
+    transition: all 0.3s ease;
+}
+.stButton button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(229, 46, 113, 0.6);
 }
 
 /* 3. ROBUST Device Separation Logic using :has() */
@@ -669,14 +736,20 @@ def draw_pc_ui(df, categories):
         st.markdown(f"### 📚 検索結果 (Page {st.session_state['search_page'] + 1})")
         
         # CSS for Uniform Cards
+        # CSS for Uniform Cards (PIVOT Style Update)
         st.markdown("""
         <style>
         .search-card-content {
-            height: 280px; /* Fixed height for content above button */
+            height: 280px;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.1); /* Glass Background */
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
         }
         .search-card-img-box {
             height: 140px;
@@ -684,29 +757,31 @@ def draw_pc_ui(df, categories):
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f9f9f9;
+            background-color: rgba(255, 255, 255, 0.05); /* Slight tint */
             margin-bottom: 8px;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         .search-card-img {
             max-height: 100%;
             max-width: 100%;
             object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
         }
         .search-card-title {
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             line-height: 1.3;
             margin-bottom: 4px;
-            height: 2.6em; /* 2 lines max */
+            height: 2.6em;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+            color: #ffffff !important; /* White Text */
         }
         .search-card-meta {
-            font-size: 0.75rem;
-            color: #666;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8) !important; /* Light Grey Text */
             margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
