@@ -447,95 +447,129 @@ def render_preview_card(isbn, categories, key_suffix):
                         time.sleep(1)
                         st.rerun()
 
-import difflib
+from datetime import datetime
 
 def search_books_by_title(query, start_index=0):
-    """Search books by title via Google Books API (Robust + Sorted + Pagination)"""
+    """Search books by title via Google Books API (Hybrid: Relevance + Newest)"""
     url = "https://www.googleapis.com/books/v1/volumes"
     results = []
     debug_log = ""
+    raw_items = []
     
     try:
-        # 1. Try with language restriction first
-        params = {
+        # Route A: Relevance (Standard)
+        params_rel = {
             "q": query,
-            "maxResults": 20, # Reduced to 20 per page for pagination standard
+            "maxResults": 20,
             "startIndex": start_index,
             "langRestrict": "ja",
             "printType": "books",
-            "country": "JP"
+            "country": "JP",
+            "orderBy": "relevance"
         }
-        r = requests.get(url, params=params, timeout=5)
-        debug_log += f"Stats 1: {r.status_code} | "
+        r_rel = requests.get(url, params=params_rel, timeout=5)
+        debug_log += f"Rel: {r_rel.status_code} | "
+        if r_rel.status_code == 200:
+            data = r_rel.json()
+            if "items" in data: raw_items.extend(data["items"])
+
+        # Route B: Newest (Boost only on 1st page to find "Recent" books buried deep)
+        if start_index == 0:
+            params_new = params_rel.copy()
+            params_new["orderBy"] = "newest"
+            # We don't need paginated newest, just the absolute latest to mix in
+            params_new["startIndex"] = 0 
+            
+            r_new = requests.get(url, params=params_new, timeout=5)
+            debug_log += f"New: {r_new.status_code} | "
+            if r_new.status_code == 200:
+                data_new = r_new.json()
+                if "items" in data_new: raw_items.extend(data_new["items"])
         
-        # 2. If no results or error, try loose search (fallback)
-        if r.status_code != 200 or not r.json().get("items"):
-            params = {
+        # Fallback Logic (Loose Search if stricter failed)
+        if not raw_items:
+             params_loose = {
                 "q": query,
                 "maxResults": 20,
                 "startIndex": start_index,
                 "country": "JP"
             }
-            r = requests.get(url, params=params, timeout=5)
-            debug_log += f"Stats 2: {r.status_code} | "
+             r_loose = requests.get(url, params=params_loose, timeout=5)
+             if r_loose.status_code == 200:
+                 data_loose = r_loose.json()
+                 if "items" in data_loose: raw_items.extend(data_loose["items"])
 
-        if r.status_code == 200:
-            data = r.json()
-            if "items" in data:
-                unique_set = set() # Avoid duplicates
-                raw_results = []
-                
-                for item in data["items"]:
-                    info = item.get("volumeInfo", {})
-                    
-                    if not info.get("title"): continue
-                    
-                    isbn = ""
-                    for ident in info.get("industryIdentifiers", []):
-                        if ident["type"] == "ISBN_13": isbn = ident["identifier"]
-                        elif ident["type"] == "ISBN_10" and not isbn: isbn = ident["identifier"]
-                    
-                    # Deduplication key (Title + Author)
-                    key = f"{info.get('title')}_{info.get('authors', [])}"
-                    if key in unique_set: continue
-                    unique_set.add(key)
-                    
-                    # Cover URL with Fallback
-                    cover_url = info.get("imageLinks", {}).get("thumbnail", "")
-                    if not cover_url and isbn:
-                        cover_url = get_amazon_image_url(isbn)
-                    
-                    # Year for sorting
-                    pub_date = info.get("publishedDate", "")
-                    year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
-                    
-                    raw_results.append({
-                        "title": info.get("title", "No Title"),
-                        "author": ", ".join(info.get("authors", ["Unknown"])),
-                        "publisher": info.get("publisher", ""),
-                        "publishedDate": f"{year}" if year else "",
-                        "year": year, # Logic only
-                        "cover_url": cover_url,
-                        "isbn": isbn
-                    })
-                
-                # SMART SORTING LOGIC (Revised)
-                # Goal: Balance "Relevance" and "Recency"
-                # Formula: Score = (TitleSimilarity * 50) + (max(0, Year - 2000) * 2)
-                # Effect: A 50% match from 2025 (25+50=75) beats a 100% match from 1990 (50+0=50)
-                def smart_score(book):
-                    sim = difflib.SequenceMatcher(None, query, book['title']).ratio() * 50
-                    recency_bonus = max(0, book['year'] - 2000) * 2
-                    return sim + recency_bonus
-                
-                # Sort descending (Higher score is better)
-                results = sorted(raw_results, key=smart_score, reverse=True)
-                
-            else:
-                debug_log += "No items found in JSON. "
-        else:
-            debug_log += f"Final Error: {r.text[:100]}"
+        # Process & Deduplicate
+        unique_set = set()
+        raw_results = []
+        current_year = datetime.now().year
+        
+        for item in raw_items:
+            info = item.get("volumeInfo", {})
+            title = info.get("title", "")
+            if not title: continue
             
+            # Deduplication
+            isbn = ""
+            for ident in info.get("industryIdentifiers", []):
+                if ident["type"] == "ISBN_13": isbn = ident["identifier"]
+                elif ident["type"] == "ISBN_10" and not isbn: isbn = ident["identifier"]
+                
+            key = f"{title}_{info.get('authors', [])}"
+            if key in unique_set: continue
+            unique_set.add(key)
+            
+            # Cover URL Fallback
+            cover_url = info.get("imageLinks", {}).get("thumbnail", "")
+            if not cover_url and isbn:
+                cover_url = get_amazon_image_url(isbn)
+            
+            # Year logic
+            pub_date = info.get("publishedDate", "")
+            year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
+            
+            raw_results.append({
+                "title": title,
+                "author": ", ".join(info.get("authors", ["Unknown"])),
+                "publisher": info.get("publisher", ""),
+                "publishedDate": f"{year}" if year else "",
+                "year": year,
+                "cover_url": cover_url,
+                "isbn": isbn
+            })
+        
+        # HYBRID TIERED SORTING
+        # Tier 1 (S-Rank): Query in Title AND Recent (<= 5 years) -> Score 2000+
+        # Tier 2 (A-Rank): Query in Title (Older)                -> Score 1000+
+        # Tier 3 (B-Rank): Query NOT in Title (Fuzzy)            -> Score 0+
+        def tiered_score(book):
+            score = 0
+            
+            # 1. Title Match Check (Case insensitive)
+            # Remove spaces for cleaner matching (e.g. "良問 の 風" vs "良問の風")
+            clean_query = query.replace(" ", "").replace("　", "").lower()
+            clean_title = book['title'].replace(" ", "").replace("　", "").lower()
+            
+            match_ratio = difflib.SequenceMatcher(None, clean_query, clean_title).ratio()
+            
+            if clean_query in clean_title:
+                # Exact Keyword Match Priority
+                score += 1000
+                # Recency Boost for S-Rank
+                if book['year'] >= (current_year - 5):
+                     score += 1000
+            else:
+                # Fuzzy Match Bonus (up to 500)
+                score += (match_ratio * 500)
+            
+            # 2. Base Year Score (Newer is always slightly better within same Tier)
+            # 2025 -> 20.25 pts
+            score += (book['year'] / 100.0)
+            
+            return score
+        
+        results = sorted(raw_results, key=tiered_score, reverse=True)
+
     except Exception as e:
         debug_log += f"Exception: {str(e)}"
         
