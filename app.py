@@ -459,7 +459,8 @@ def search_books_by_title(query):
             "q": query,
             "maxResults": 20,
             "langRestrict": "ja",
-            "printType": "books"
+            "printType": "books",
+            "country": "JP"  # Explicitly set country to fix 403 Geo Error
         }
         r = requests.get(url, params=params, timeout=5)
         debug_log += f"Stats 1: {r.status_code} | "
@@ -468,7 +469,8 @@ def search_books_by_title(query):
         if r.status_code != 200 or not r.json().get("items"):
             params = {
                 "q": query,
-                "maxResults": 20
+                "maxResults": 20,
+                "country": "JP" # Add country here too
             }
             r = requests.get(url, params=params, timeout=5)
             debug_log += f"Stats 2: {r.status_code} | "
