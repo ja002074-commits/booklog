@@ -151,6 +151,20 @@ section[data-testid="stSidebar"] p {
 </style>
 """, unsafe_allow_html=True)
 
+def to_isbn10(isbn13):
+    """Convert ISBN13 to ISBN10."""
+    if not isbn13 or len(isbn13) != 13: return None
+    body = isbn13[3:12]
+    checksum = 0
+    for i, digit in enumerate(body):
+        checksum += int(digit) * (10 - i)
+    remainder = checksum % 11
+    check_digit = 11 - remainder
+    if check_digit == 10: check_digit = 'X'
+    elif check_digit == 11: check_digit = '0'
+    else: check_digit = str(check_digit)
+    return body + check_digit
+
 # --- Google Sheets DB ---
 def get_conn():
     return st.connection("gsheets", type=GSheetsConnection)
