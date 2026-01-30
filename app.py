@@ -448,29 +448,36 @@ def render_preview_card(isbn, categories, key_suffix):
                         st.rerun()
 
 def search_books_by_title(query):
-    """Search books by title via Google Books API (Improved)"""
+    """Search books by title via Google Books API (Robust)"""
+    url = "https://www.googleapis.com/books/v1/volumes"
+    results = []
+    
     try:
-        # Use params for proper encoding and add language restriction
-        url = "https://www.googleapis.com/books/v1/volumes"
+        # 1. Try with language restriction first
         params = {
             "q": query,
-            "maxResults": 20,        # Increase candidates
-            "langRestrict": "ja",    # Favor Japanese results
-            "printType": "books"     # Exclude magazines/etc if desired
+            "maxResults": 20,
+            "langRestrict": "ja",
+            "printType": "books"
         }
         r = requests.get(url, params=params, timeout=5)
         
+        # 2. If no results or error, try loose search (fallback)
+        if r.status_code != 200 or not r.json().get("items"):
+            params = {
+                "q": query,
+                "maxResults": 20
+            }
+            r = requests.get(url, params=params, timeout=5)
+
         if r.status_code == 200:
             data = r.json()
-            results = []
             if "items" in data:
                 for item in data["items"]:
                     info = item.get("volumeInfo", {})
                     
-                    # Filtering: Skip items with no useful title
                     if not info.get("title"): continue
                     
-                    # Get ISBN
                     isbn = ""
                     for ident in info.get("industryIdentifiers", []):
                         if ident["type"] == "ISBN_13": isbn = ident["identifier"]
@@ -482,9 +489,11 @@ def search_books_by_title(query):
                         "cover_url": info.get("imageLinks", {}).get("thumbnail", ""),
                         "isbn": isbn
                     })
-            return results
-    except: pass
-    return []
+    except Exception as e:
+        # In a real app, log error. For now, we return empty list.
+        pass
+        
+    return results
 
 def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
