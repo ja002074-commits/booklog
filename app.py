@@ -487,6 +487,43 @@ def search_books_by_title(query, start_index=0):
                 data_new = r_new.json()
                 if "items" in data_new: raw_items.extend(data_new["items"])
         
+        # Route C: Omni-Search Permutations (Targeted Title/Author Fetch)
+        # Fix: If user inputs "Title Author", Google's generic search often fails to retrieve it top 20.
+        # We explicitly ask for "intitle:A inauthor:B" to force retrieval.
+        keywords = re.split(r'[ 　]+', query.strip())
+        keywords = [k for k in keywords if k]
+        
+        if start_index == 0 and len(keywords) >= 2:
+            # Take first 2 meaningful keywords (most common pattern: "Title Author")
+            w1, w2 = keywords[0], keywords[1]
+            
+            # Permutation 1: intitle:w1 inauthor:w2
+            params_p1 = params_rel.copy()
+            params_p1["q"] = f"intitle:{w1} inauthor:{w2}"
+            # Ensure we don't paginate these specific fetches, we just want the top hit
+            params_p1["startIndex"] = 0 
+            
+            try:
+                r_p1 = requests.get(url, params=params_p1, timeout=5)
+                debug_log += f"P1: {r_p1.status_code} | "
+                if r_p1.status_code == 200:
+                    data_p1 = r_p1.json()
+                    if "items" in data_p1: raw_items.extend(data_p1["items"])
+            except: pass
+
+            # Permutation 2: intitle:w2 inauthor:w1
+            params_p2 = params_rel.copy()
+            params_p2["q"] = f"intitle:{w2} inauthor:{w1}"
+            params_p2["startIndex"] = 0
+            
+            try:
+                r_p2 = requests.get(url, params=params_p2, timeout=5)
+                debug_log += f"P2: {r_p2.status_code} | "
+                if r_p2.status_code == 200:
+                    data_p2 = r_p2.json()
+                    if "items" in data_p2: raw_items.extend(data_p2["items"])
+            except: pass
+        
         # Fallback Logic (Loose Search if stricter failed)
         if not raw_items:
              params_loose = {
