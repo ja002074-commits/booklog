@@ -442,13 +442,15 @@ def render_preview_card(isbn, categories, key_suffix):
                 c_status = st.selectbox("状態", ["未読", "読書中", "読了"])
                 if st.form_submit_button("この本を登録する"):
                     if add_book(data['title'], data['author'], c_cat, "", c_status, "", data['cover_url'], "", isbn):
-                        st.success("登録しました")
+        st.success("登録しました")
                         del st.session_state["preview_data"]
                         time.sleep(1)
                         st.rerun()
 
+import difflib
+
 def search_books_by_title(query):
-    """Search books by title via Google Books API (Robust + Debug)"""
+    """Search books by title via Google Books API (Robust + Sorted)"""
     url = "https://www.googleapis.com/books/v1/volumes"
     results = []
     debug_log = ""
@@ -457,10 +459,10 @@ def search_books_by_title(query):
         # 1. Try with language restriction first
         params = {
             "q": query,
-            "maxResults": 20,
+            "maxResults": 30, # Fetch more to sort better
             "langRestrict": "ja",
             "printType": "books",
-            "country": "JP"  # Explicitly set country to fix 403 Geo Error
+            "country": "JP"
         }
         r = requests.get(url, params=params, timeout=5)
         debug_log += f"Stats 1: {r.status_code} | "
@@ -469,8 +471,8 @@ def search_books_by_title(query):
         if r.status_code != 200 or not r.json().get("items"):
             params = {
                 "q": query,
-                "maxResults": 20,
-                "country": "JP" # Add country here too
+                "maxResults": 30,
+                "country": "JP"
             }
             r = requests.get(url, params=params, timeout=5)
             debug_log += f"Stats 2: {r.status_code} | "
@@ -478,6 +480,9 @@ def search_books_by_title(query):
         if r.status_code == 200:
             data = r.json()
             if "items" in data:
+                unique_set = set() # Avoid duplicates
+                raw_results = []
+                
                 for item in data["items"]:
                     info = item.get("volumeInfo", {})
                     
@@ -488,12 +493,27 @@ def search_books_by_title(query):
                         if ident["type"] == "ISBN_13": isbn = ident["identifier"]
                         elif ident["type"] == "ISBN_10" and not isbn: isbn = ident["identifier"]
                     
-                    results.append({
+                    # Deduplication key (Title + Author)
+                    key = f"{info.get('title')}_{info.get('authors', [])}"
+                    if key in unique_set: continue
+                    unique_set.add(key)
+                    
+                    raw_results.append({
                         "title": info.get("title", "No Title"),
                         "author": ", ".join(info.get("authors", ["Unknown"])),
+                        "publisher": info.get("publisher", ""), # Add Publisher
+                        "publishedDate": info.get("publishedDate", "")[:4], # Year only
                         "cover_url": info.get("imageLinks", {}).get("thumbnail", ""),
                         "isbn": isbn
                     })
+                
+                # Sort by Similarity to Query
+                def similarity(book):
+                    return difflib.SequenceMatcher(None, query, book['title']).ratio()
+                
+                # Sort descending (most similar first)
+                results = sorted(raw_results, key=similarity, reverse=True)
+                
             else:
                 debug_log += "No items found in JSON. "
         else:
@@ -511,6 +531,7 @@ def draw_pc_ui(df, categories):
     # 1. PC: Search via ISBN or Title
     st.sidebar.markdown("#### 🔍 新規登録検索")
     search_input = st.sidebar.text_input("ISBN または タイトル", key="pc_new_book_search")
+    st.sidebar.caption("※タイトル検索は候補一覧が表示されます")
     
     # Search Logic
     if search_input:
@@ -523,6 +544,7 @@ def draw_pc_ui(df, categories):
                     info = fetch_book_info(clean_input)
                     if info:
                         st.session_state["preview_data"] = info
+                        # Ensure ISBN is passed correctly
                         if "isbn" not in st.session_state["preview_data"]: 
                              st.session_state["preview_data"]["isbn"] = clean_input
                         st.session_state["candidate_list"] = None
@@ -543,17 +565,30 @@ def draw_pc_ui(df, categories):
     
     # Display Candidates (if any)
     if st.session_state.get("candidate_list"):
-        st.markdown("### 📚 検索結果 (候補を選択)")
-        cols = st.columns(3) # Grid layout for candidates
-        for i, book in enumerate(st.session_state["candidate_list"]):
+        st.markdown(f"### 📚 検索結果 ({len(st.session_state['candidate_list'])}件)")
+        
+        # Grid layout for candidates (3 columns)
+        candidates = st.session_state["candidate_list"]
+        cols = st.columns(3) 
+        
+        for i, book in enumerate(candidates):
             with cols[i % 3]:
-                # Candidate Card
                 with st.container(border=True):
+                    # Image
                     img = book.get("cover_url") if book.get("cover_url") else PLACEHOLDER_IMG
                     try: st.image(img, use_container_width=True)
                     except: st.image(PLACEHOLDER_IMG, use_container_width=True)
-                    st.caption(book['title'][:30] + "...")
-                    if st.button("選択", key=f"sel_cand_{i}"):
+                    
+                    # Info
+                    st.markdown(f"<div style='font-weight:bold; font-size:0.95rem; line-height:1.2; margin-bottom:4px;'>{book['title']}</div>", unsafe_allow_html=True)
+                    st.caption(f"{book['author']}")
+                    
+                    pub_info = []
+                    if book.get('publisher'): pub_info.append(book['publisher'])
+                    if book.get('publishedDate'): pub_info.append(book['publishedDate'])
+                    st.markdown(f"<div style='font-size:0.75rem; color:#666;'>{' / '.join(pub_info)}</div>", unsafe_allow_html=True)
+                    
+                    if st.button("これを選択", key=f"sel_cand_{i}", use_container_width=True):
                         st.session_state["preview_data"] = book
                         st.session_state["candidate_list"] = None # Clear list after selection
                         st.rerun()
