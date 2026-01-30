@@ -385,7 +385,7 @@ def resolve_best_image_url(isbn):
     if o_data and o_data.get("cover_url"): return o_data["cover_url"]
     
     # 3. Amazon
-    isbn = isbn.replace('-', '').strip()
+    isbn = str(isbn).replace('-', '').strip()
     if len(isbn) == 13:
         isbn10 = to_isbn10(isbn)
         if isbn10: return f"https://images-na.ssl-images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
