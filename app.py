@@ -36,146 +36,135 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Custom CSS (MUJI Kraft Paper Style)
+# Custom CSS (Refined MUJI Style)
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@700&display=swap');
+/* Font: Standard Japanese Gothic for MUJI-like cleanliness */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
-/* Main Background - Kraft Paper Texture effect */
+/* Main Background - Subtle Kraft Texture */
 .stApp {
-    background-color: #EFE9DC;
+    background-color: #F4F3F0; 
     background-image: 
-        radial-gradient(#D6C6AF 1px, transparent 1px), 
-        radial-gradient(#D6C6AF 1px, transparent 1px);
+        linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
     background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
-    color: #4A2323; /* Dark reddish brown text */
-    font-family: 'Noto Sans JP', 'Roboto', sans-serif;
+    background-blend-mode: soft-light;
+    color: #444444; 
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Biz UDPGothic", "Meiryo", "Noto Sans JP", sans-serif;
 }
 
-/* Typography - Bold & Reddish Brown */
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Noto Sans JP', sans-serif !important;
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif !important;
     font-weight: 700 !important;
-    color: #7F0019 !important; /* MUJI Wine Red */
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    color: #7F0019 !important;
+    letter-spacing: 0.04em;
 }
 
 h1 {
-    font-family: 'Roboto', sans-serif !important; /* English Headings */
-    font-size: 3rem !important;
-    border-bottom: 4px solid #7F0019;
+    font-size: 2.0rem !important;
+    border-bottom: 1px solid #7F0019; /* Thinner underline */
     padding-bottom: 15px;
     margin-bottom: 30px;
-    line-height: 1.1;
+    line-height: 1.4;
 }
 
-/* Sidebar - Slightly darker Kraft */
+/* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #E6DEC9;
-    background-image: 
-        radial-gradient(#D1C1A8 1px, transparent 1px), 
-        radial-gradient(#D1C1A8 1px, transparent 1px);
-    background-size: 16px 16px;
-    background-position: 0 0, 8px 8px;
-    border-right: 1px solid #D4C5A9;
+    background-color: #E6DEC9; /* Stronger Kraft */
+    border-right: 1px solid #D8CEBB;
+}
+section[data-testid="stSidebar"] * {
+    color: #444444 !important;
 }
 
-section[data-testid="stSidebar"] h1, 
-section[data-testid="stSidebar"] h2, 
-section[data-testid="stSidebar"] h3, 
-section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] span {
-    color: #4A2323 !important;
-}
-
-/* Main Area Inputs - White Paper Cutout style */
+/* INPUTS - The "Stylish" Thin Border */
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div,
 input, textarea, select {
-    background-color: #FCFAF8 !important; /* Clean White Paper */
-    color: #4A2323 !important;
-    border: 2px solid #7F0019 !important; /* Bold Red Border */
+    background-color: #FFFFFF !important;
+    color: #333333 !important;
+    border: 1px solid #C0C0C0 !important; /* Stylish thin grey border */
     border-radius: 0px !important;
-    font-weight: 500;
+    font-size: 0.9rem;
 }
 
-/* Focus states */
+/* Focus states - MUJI Red Thin Outline */
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within {
-    box-shadow: 4px 4px 0px rgba(127, 0, 25, 0.2) !important;
+    border-color: #7F0019 !important;
+    box-shadow: 0 0 0 1px #7F0019 !important; /* Thin consistent outline */
 }
 
-/* Buttons - Stamp / Label Style */
+/* Selectbox Artifact Fix */
+div[data-baseweb="select"] span {
+    color: #333333 !important;
+}
+div[data-baseweb="select"] svg {
+    fill: #666666 !important;
+}
+
+/* Buttons */
 .stButton > button {
-    background-color: #7F0019;
-    border: none;
-    color: #FFFFFF;
+    background-color: #FFFFFF;
+    border: 1px solid #999999;
+    color: #333333;
     border-radius: 0px;
-    font-weight: 700;
-    padding: 0.6rem 2rem;
-    letter-spacing: 0.1em;
-    box-shadow: 3px 3px 0px #4A2323;
-    transition: all 0.1s ease;
-}
-.stButton > button:hover {
-    background-color: #99001E;
-    color: #FFFFFF;
-    transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0px #4A2323;
-}
-.stButton > button:active {
-    transform: translate(3px, 3px);
+    font-weight: 400;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.2s ease;
     box-shadow: none;
 }
+.stButton > button:hover {
+    background-color: #7F0019;
+    color: #FFFFFF;
+    border-color: #7F0019;
+}
 
-/* Expander - Kraft Card */
+/* Expander */
 .streamlit-expanderHeader {
-    background-color: #E6DEC9;
-    border: 1px solid #7F0019;
-    color: #7F0019;
-    font-weight: bold;
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    color: #333333;
     border-radius: 0px;
+    font-size: 0.9rem;
 }
 div[data-testid="stExpander"] {
-    border: 1px solid #7F0019;
+    border: 1px solid #E0E0E0;
     border-top: none;
     border-radius: 0px;
-    background-color: #FCFAF8;
+    background-color: #FFFFFF;
 }
 
-/* Note Box - Memo Pad Style */
+/* Note Box & Cards */
 .note-box {
-    background-color: #FCFAF8;
-    border: 1px solid #D4C5A9;
-    border-left: 6px solid #7F0019; 
-    padding: 20px;
-    font-family: 'Noto Sans JP', sans-serif;
-    color: #4A2323;
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-left: 3px solid #7F0019; 
+    padding: 15px;
+    color: #333333;
     border-radius: 0px;
-    margin-bottom: 20px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 15px;
+    font-size: 0.9rem;
 }
 
-/* Tags - Recycled Paper Labels */
+/* Tags */
 .tag-badge {
     display: inline-block;
-    padding: 4px 12px;
-    margin: 3px;
-    background: #D4C5A9;
-    color: #4A2323;
-    font-weight: 600;
-    font-size: 0.8rem;
-    border: 1px solid #4A2323;
+    padding: 3px 10px;
+    margin: 2px;
+    background: #F0F0EE; /* Very light grey */
+    color: #444444;
+    font-size: 0.75rem;
+    border: 1px solid #DDD;
     border-radius: 0px;
 }
 
-/* Images - Photo Frame */
+/* Images */
 img {
-    border: 4px solid #FCFAF8;
-    box-shadow: 3px 3px 10px rgba(74, 35, 35, 0.2);
+    border: 1px solid #EEEEEE;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 /* Responsive Utilities */
