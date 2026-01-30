@@ -372,6 +372,9 @@ def fetch_book_info(isbn):
 
 # --- UI COMPONENTS ---
 
+# Placeholder Image for Missing Covers (Simple Gray Book Icon)
+PLACEHOLDER_IMG = "https://placehold.co/400x600/e0e0e0/999999?text=No+Image"
+
 def render_book_card(row, is_mobile=False):
     with st.container():
         if is_mobile:
@@ -380,13 +383,12 @@ def render_book_card(row, is_mobile=False):
             c_img, c_info, c_note = st.columns([1, 2, 3])
             
         with c_img:
-            if row['cover_url']:
-                try:
-                    st.image(row['cover_url'], use_container_width=True)
-                except Exception:
-                    st.markdown("<div style='height:120px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999; font-size:0.8rem;'>Image Error</div>", unsafe_allow_html=True)
-            else:
-                st.markdown("<div style='height:120px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999; font-size:0.8rem;'>No Image</div>", unsafe_allow_html=True)
+            # Robust Image Rendering
+            img_url = row['cover_url'] if row['cover_url'] and str(row['cover_url']) != 'nan' else PLACEHOLDER_IMG
+            try:
+                st.image(img_url, use_container_width=True)
+            except:
+                st.image(PLACEHOLDER_IMG, use_container_width=True)
         
         with c_info:
             st.markdown(f"### {row['title']}")
@@ -417,92 +419,47 @@ def render_book_card(row, is_mobile=False):
 
         st.markdown("---")
 
-def render_preview_card(isbn, categories, key_suffix):
-    """Show preview of book found via ISBN before adding"""
-    if "preview_data" in st.session_state and st.session_state["preview_data"]:
-        data = st.session_state["preview_data"]
-        st.info("✅ 書籍が見つかりました")
+def render_edit_form(row, categories, key_suffix):
+    with st.form(key=f"edit_form_{row['id']}_{key_suffix}"):
+        st.markdown(f"#### 編集: {row['title']}")
+        e_title = st.text_input("タイトル", row['title'])
+        e_author = st.text_input("著者", row['author'])
+        e_cat = st.selectbox("カテゴリ", categories, index=categories.index(row['category']) if row['category'] in categories else 0)
+        e_status = st.selectbox("状態", ["未読", "読書中", "読了"], index=["未読", "読書中", "読了"].index(row['status']))
+        e_notes = st.text_area("メモ", row['notes'])
         
-        col1, col2 = st.columns([1, 3])
+        col1, col2, col3 = st.columns(3)
         with col1:
-            if data.get("cover_url"):
-                st.image(data["cover_url"], width=100)
-            else:
-                st.write("No Image")
+            if st.form_submit_button("保存"):
+                update_book(row['id'], e_title, e_author, e_cat, row['tags'], e_status, e_notes, row['read_date'])
+                st.session_state["edit_target"] = None
+                st.rerun()
         with col2:
-            st.markdown(f"**{data['title']}**")
-            st.caption(f"著者: {data['author']}")
-            
-            # Registration Form inside Preview
-            with st.form(key=f"confirm_add_{key_suffix}"):
-                c_cat = st.selectbox("カテゴリ", categories)
-                c_status = st.selectbox("状態", ["未読", "読書中", "読了"])
-                if st.form_submit_button("この本を登録する"):
-                    if add_book(data['title'], data['author'], c_cat, "", c_status, "", data['cover_url'], "", isbn):
-                        st.success("登録しました")
-                        del st.session_state["preview_data"]
-                        time.sleep(1)
-                        st.rerun()
-
-def draw_pc_ui(df, categories):
-    """Render PC Exclusive UI"""
-    st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
-    
-    # 1. PC: Auto-Search via ISBN
-    st.sidebar.markdown("#### 🔍 ISBN自動検索")
-    isbn_input = st.sidebar.text_input("ISBNを入力 (Enter)", key="pc_isbn_search")
-    
-    # Search Logic
-    if isbn_input:
-        if "last_isbn" not in st.session_state or st.session_state["last_isbn"] != isbn_input:
-            with st.spinner("検索中..."):
-                info = fetch_book_info(isbn_input)
-                if info:
-                    st.session_state["preview_data"] = info
-                    st.session_state["last_isbn"] = isbn_input
-                else:
-                    st.sidebar.warning("見つかりませんでした")
-                    st.session_state["preview_data"] = None
-    
-    # Display Preview in MAIN AREA (Top) for easy visibility as requested
-    if "preview_data" in st.session_state and st.session_state["preview_data"]:
-        st.markdown("### 📝 登録候補")
-        render_preview_card(isbn_input, categories, "pc")
-        st.markdown("---")
-
-    # 2. Sidebar Filters
-    st.sidebar.markdown("#### 📂 フィルタ")
-    search_q = st.sidebar.text_input("キーワード検索", key="pc_search")
-    cat_filter = st.sidebar.multiselect("カテゴリ", categories, key="pc_cat_filter")
-    
-    # Filter Logic
-    filtered = df.copy()
-    if search_q:
-        filtered = filtered[filtered.apply(lambda r: search_q in str(r.values), axis=1)]
-    if cat_filter:
-        filtered = filtered[filtered['category'].isin(cat_filter)]
-    
-    # Main Content
-    st.markdown(f"# 蔵書一覧 ({len(filtered)}冊)")
-    
-    for idx, row in filtered.iterrows():
-        if st.session_state.get("edit_target") == row['id']:
-            render_edit_form(row, categories, key_suffix="pc")
-        else:
-            render_book_card(row, is_mobile=False)
-            
-    # PC: Manual Add (Collapsed)
-    with st.expander("➕ 手動登録フォーム"):
-        render_add_book_form(categories, key_suffix="pc")
+            if st.form_submit_button("キャンセル"):
+                st.session_state["edit_target"] = None
+                st.rerun()
+        with col3:
+            # Delete Button
+            if st.form_submit_button("削除", type="primary"):
+                delete_book(row['id'])
+                st.session_state["edit_target"] = None
+                st.success("削除しました")
+                time.sleep(1)
+                st.rerun()
 
 def draw_mobile_ui(df, categories):
     """Render Mobile Exclusive UI"""
     st.markdown("### 📱 読書録")
     
     # 1. Mobile: Camera Scanner (TOP PRIORITY)
-    # UNCONDITIONAL RENDER for Mobile
+    # Fix: Put camera in an expander or checkbox to prevent auto-activation on load (which affects PC if code executes)
     st.markdown("#### 📷 バーコード読取")
-    if PYZBAR_AVAILABLE:
+    
+    # Checkbox to explicitly activate camera. Default False.
+    # This prevents the camera from turning on automatically when the page loads (on PC or Mobile).
+    show_camera = st.checkbox("カメラを起動する", key="toggle_camera")
+    
+    if show_camera and PYZBAR_AVAILABLE:
         img_file = st.camera_input("バーコードを写してください", key="mob_cam")
         if img_file:
             try:
@@ -517,7 +474,7 @@ def draw_mobile_ui(df, categories):
                         render_preview_card(isbn, categories, "mob_cam")
             except:
                 st.error("読み取れませんでした")
-    else:
+    elif show_camera and not PYZBAR_AVAILABLE:
         st.warning("⚠️ バーコード読取ライブラリ(zbar)が見つかりません。")
     
     # 2. Results / List
@@ -535,7 +492,6 @@ def draw_mobile_ui(df, categories):
 
     st.caption(f"{len(filtered)} 冊")
     
-    # Simple List
     for idx, row in filtered.iterrows():
         if st.session_state.get("edit_target") == row['id']:
             render_edit_form(row, categories, key_suffix="mob")
@@ -544,26 +500,6 @@ def draw_mobile_ui(df, categories):
             
     with st.expander("➕ 手動登録"):
         render_add_book_form(categories, key_suffix="mob")
-
-def render_edit_form(row, categories, key_suffix):
-    with st.form(key=f"edit_form_{row['id']}_{key_suffix}"):
-        st.markdown(f"#### 編集: {row['title']}")
-        e_title = st.text_input("タイトル", row['title'])
-        e_author = st.text_input("著者", row['author'])
-        e_cat = st.selectbox("カテゴリ", categories, index=categories.index(row['category']) if row['category'] in categories else 0)
-        e_status = st.selectbox("状態", ["未読", "読書中", "読了"], index=["未読", "読書中", "読了"].index(row['status']))
-        e_notes = st.text_area("メモ", row['notes'])
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.form_submit_button("保存"):
-                update_book(row['id'], e_title, e_author, e_cat, row['tags'], e_status, e_notes, row['read_date'])
-                st.session_state["edit_target"] = None
-                st.rerun()
-        with col2:
-            if st.form_submit_button("キャンセル"):
-                st.session_state["edit_target"] = None
-                st.rerun()
 
 def render_add_book_form(categories, key_suffix):
     with st.form(key=f"add_book_{key_suffix}"):
