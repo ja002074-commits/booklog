@@ -461,7 +461,7 @@ def search_books_by_title(query, start_index=0):
         # Route A: Relevance (Standard)
         params_rel = {
             "q": query,
-            "maxResults": 20,
+            "maxResults": 40, # Increased to 40 to widen pool
             "startIndex": start_index,
             "langRestrict": "ja",
             "printType": "books",
@@ -528,7 +528,7 @@ def search_books_by_title(query, start_index=0):
         if not raw_items:
              params_loose = {
                 "q": query,
-                "maxResults": 20,
+                "maxResults": 40,
                 "startIndex": start_index,
                 "country": "JP"
             }
@@ -546,7 +546,15 @@ def search_books_by_title(query, start_index=0):
             info = item.get("volumeInfo", {})
             title = info.get("title", "")
             if not title: continue
+
+            # Year logic
+            pub_date = info.get("publishedDate", "")
+            year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
             
+            # HARD FILTER: 1950+ only
+            if year > 0 and year < 1950:
+                continue
+
             # Deduplication
             isbn = ""
             for ident in info.get("industryIdentifiers", []):
@@ -562,10 +570,6 @@ def search_books_by_title(query, start_index=0):
             if not cover_url and isbn:
                 cover_url = get_amazon_image_url(isbn)
             
-            # Year logic
-            pub_date = info.get("publishedDate", "")
-            year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
-            
             raw_results.append({
                 "title": title,
                 "author": ", ".join(info.get("authors", ["Unknown"])),
@@ -573,13 +577,14 @@ def search_books_by_title(query, start_index=0):
                 "publishedDate": f"{year}" if year else "",
                 "year": year,
                 "cover_url": cover_url,
-                "isbn": isbn
+                "isbn": isbn,
+                "description": info.get("description", "") # Capture description
             })
         
         # HYBRID TIERED SORTING (Multi-Keyword + Author Support)
         # Tier 1 (S-Rank): All Keywords in (Title+Author) AND Recent (<= 5 years) -> Score 2000+
         # Tier 2 (A-Rank): All Keywords in (Title+Author) (Older)                -> Score 1000+
-        # Tier 3 (B-Rank): Partial Title Match / Fuzzy                           -> Score 0+
+        # Tier 3 (B-Rank): Partial Title Match / Fuzzy / Desc Match              -> Score 0+
         def tiered_score(book):
             score = 0
             
@@ -590,6 +595,7 @@ def search_books_by_title(query, start_index=0):
             
             # Target: Title + Author (Normalized)
             target_text = (book['title'] + " " + book['author']).lower()
+            desc_text = book['description'].lower()
             
             # 1. Multi-Keyword Check
             all_keywords_found = all(k in target_text for k in keywords)
@@ -602,20 +608,23 @@ def search_books_by_title(query, start_index=0):
                  if book['year'] >= (current_year - 5):
                      score += 1000
             else:
-                # B-Rank: Fuzzy Match on Title Only (Fall back to standard title similarity)
+                # B-Rank Check: Do keywords appear in Description?
+                # If keywords in Description but NOT Title, give it a small boost over pure noise
+                all_in_desc = all(k in desc_text for k in keywords)
+                
+                # Fuzzy Match on Title
                 clean_query = query.replace(" ", "").replace("　", "").lower()
                 clean_title = book['title'].replace(" ", "").replace("　", "").lower()
                 match_ratio = difflib.SequenceMatcher(None, clean_query, clean_title).ratio()
+                
                 score += (match_ratio * 500)
+                
+                if all_in_desc:
+                    score += 300 # Boost if description matches context (e.g. "OHM" book about "Ryomon")
 
             # 2. Base Year Score (Newer is always slightly better within same Tier)
             # 2025 -> 20.25 pts
             score += (book['year'] / 100.0)
-            
-            # 3. Penalty for Very Old Books (< 1950)
-            # User Request: "1950年より昔の書籍は、検索結果は後ろに回してください"
-            if 0 < book['year'] < 1950:
-                score -= 10000 # Heavy penalty to push to bottom
             
             return score
         
