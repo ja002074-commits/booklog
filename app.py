@@ -66,18 +66,12 @@ section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3, 
 section[data-testid="stSidebar"] label, 
 section[data-testid="stSidebar"] span, 
-section[data-testid="stSidebar"] div,
 section[data-testid="stSidebar"] p {
     color: #E2E8F0 !important;
 }
 
-/* Sidebar Inputs */
-[data-testid="stSidebar"] input, [data-testid="stSidebar"] textarea, [data-testid="stSidebar"] select {
-    background-color: rgba(255,255,255,0.1);
-    color: #FFFFFF;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 4px;
-}
+/* Sidebar Inputs - Removed to prevent artifacts */
+
 
 /* Buttons */
 .stButton > button {
