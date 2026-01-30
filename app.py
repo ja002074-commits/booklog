@@ -381,7 +381,10 @@ def render_book_card(row, is_mobile=False):
             
         with c_img:
             if row['cover_url']:
-                st.image(row['cover_url'], use_container_width=True)
+                try:
+                    st.image(row['cover_url'], use_container_width=True)
+                except Exception:
+                    st.markdown("<div style='height:120px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999; font-size:0.8rem;'>Image Error</div>", unsafe_allow_html=True)
             else:
                 st.markdown("<div style='height:120px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999; font-size:0.8rem;'>No Image</div>", unsafe_allow_html=True)
         
