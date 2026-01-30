@@ -477,7 +477,8 @@ def draw_mobile_ui(df, categories):
     # 2. Results / List
     st.markdown("---")
     
-    with st.expander("🔍 検索・フィルタ"):
+    # Hide the "Search/Filter" label to be cleaner, just show input
+    with st.expander("🔍 検索・フィルタ", expanded=True):
         m_search = st.text_input("キーワード", key="mob_search")
         m_cat = st.selectbox("カテゴリ", ["すべて"] + categories, key="mob_cat")
     
@@ -542,10 +543,12 @@ def main():
     df = get_books()
     categories = get_categories()
     
+    # Wrapper for PC
     st.markdown('<div class="pc-only">', unsafe_allow_html=True)
     draw_pc_ui(df, categories)
     st.markdown('</div>', unsafe_allow_html=True)
     
+    # Wrapper for Mobile
     st.markdown('<div class="mobile-only">', unsafe_allow_html=True)
     draw_mobile_ui(df, categories)
     st.markdown('</div>', unsafe_allow_html=True)
