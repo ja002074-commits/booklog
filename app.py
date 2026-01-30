@@ -458,54 +458,49 @@ def search_books_by_title(query, start_index=0):
     raw_items = []
     
     try:
-        # Route A: Relevance (Standard)
-        params_rel = {
-            "q": query,
-            "maxResults": 40, # Increased to 40 to widen pool
+        # Route A: Specialized "Title" Search (Prioritize this!)
+        # We explicitly ask Google for "intitle:QUERY" first.
+        params_title = {
+            "q": f"intitle:{query}",
+            "maxResults": 40,
             "startIndex": start_index,
             "langRestrict": "ja",
             "printType": "books",
             "country": "JP",
             "orderBy": "relevance"
         }
-        r_rel = requests.get(url, params=params_rel, timeout=5)
-        debug_log += f"Rel: {r_rel.status_code} | "
-        if r_rel.status_code == 200:
-            data = r_rel.json()
-            if "items" in data: raw_items.extend(data["items"])
+        try:
+            r_title = requests.get(url, params=params_title, timeout=5)
+            debug_log += f"Title: {r_title.status_code} | "
+            if r_title.status_code == 200:
+                data = r_title.json()
+                if "items" in data: raw_items.extend(data["items"])
+        except: pass
 
-        # Route B: Newest (Boost only on 1st page to find "Recent" books buried deep)
-        if start_index == 0:
-            params_new = params_rel.copy()
-            params_new["orderBy"] = "newest"
-            # We don't need paginated newest, just the absolute latest to mix in
-            params_new["startIndex"] = 0 
-            
-            r_new = requests.get(url, params=params_new, timeout=5)
-            debug_log += f"New: {r_new.status_code} | "
-            if r_new.status_code == 200:
-                data_new = r_new.json()
-                if "items" in data_new: raw_items.extend(data_new["items"])
+        # Route B: Standard Relevance (Backup)
+        params_rel = params_title.copy()
+        params_rel["q"] = query
         
+        try:
+            r_rel = requests.get(url, params=params_rel, timeout=5)
+            debug_log += f"Rel: {r_rel.status_code} | "
+            if r_rel.status_code == 200:
+                data = r_rel.json()
+                if "items" in data: raw_items.extend(data["items"])
+        except: pass
+
         # Route C: Omni-Search Permutations (Targeted Title/Author Fetch)
-        # Fix: If user inputs "Title Author", Google's generic search often fails to retrieve it top 20.
-        # We explicitly ask for "intitle:A inauthor:B" to force retrieval.
         keywords = re.split(r'[ 　]+', query.strip())
         keywords = [k for k in keywords if k]
         
         if start_index == 0 and len(keywords) >= 2:
-            # Take first 2 meaningful keywords (most common pattern: "Title Author")
             w1, w2 = keywords[0], keywords[1]
-            
             # Permutation 1: intitle:w1 inauthor:w2
             params_p1 = params_rel.copy()
             params_p1["q"] = f"intitle:{w1} inauthor:{w2}"
-            # Ensure we don't paginate these specific fetches, we just want the top hit
             params_p1["startIndex"] = 0 
-            
             try:
                 r_p1 = requests.get(url, params=params_p1, timeout=5)
-                debug_log += f"P1: {r_p1.status_code} | "
                 if r_p1.status_code == 200:
                     data_p1 = r_p1.json()
                     if "items" in data_p1: raw_items.extend(data_p1["items"])
@@ -515,33 +510,23 @@ def search_books_by_title(query, start_index=0):
             params_p2 = params_rel.copy()
             params_p2["q"] = f"intitle:{w2} inauthor:{w1}"
             params_p2["startIndex"] = 0
-            
             try:
                 r_p2 = requests.get(url, params=params_p2, timeout=5)
-                debug_log += f"P2: {r_p2.status_code} | "
                 if r_p2.status_code == 200:
                     data_p2 = r_p2.json()
                     if "items" in data_p2: raw_items.extend(data_p2["items"])
             except: pass
         
-        # Fallback Logic (Loose Search if stricter failed)
-        if not raw_items:
-             params_loose = {
-                "q": query,
-                "maxResults": 40,
-                "startIndex": start_index,
-                "country": "JP"
-            }
-             r_loose = requests.get(url, params=params_loose, timeout=5)
-             if r_loose.status_code == 200:
-                 data_loose = r_loose.json()
-                 if "items" in data_loose: raw_items.extend(data_loose["items"])
-
         # Process & Deduplicate
         unique_set = set()
         raw_results = []
         current_year = datetime.now().year
         
+        # Prepare keywords for STRICT filtering
+        # Case insensitive check
+        search_keywords = re.split(r'[ 　]+', query.strip().lower())
+        search_keywords = [k for k in search_keywords if k]
+
         for item in raw_items:
             info = item.get("volumeInfo", {})
             title = info.get("title", "")
@@ -551,9 +536,22 @@ def search_books_by_title(query, start_index=0):
             pub_date = info.get("publishedDate", "")
             year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
             
-            # HARD FILTER: 1950+ only
-            if year > 0 and year < 1950:
-                continue
+            # HARD FILTER 1: Date Quality Control
+            # Must be 1960+ (User hated pre-1950, upped to 1960 for safety) AND Year must be known
+            if year < 1960: 
+                continue 
+
+            # HARD FILTER 2: Strict Title/Author Match
+            # If standard search, we REQUIRE keywords to be in Title OR Author.
+            # (No more Description matching to avoid noise)
+            target_text = (title + " " + " ".join(info.get("authors", []))).lower()
+            
+            # Check if at least ONE keyword exists in Title/Author (Minimal relevance)
+            # For multi-word queries, we want stricter adherence usually, 
+            # but let's say: "If query is 'Example', 'Example' MUST be in Title/Author"
+            matches_count = sum(1 for k in search_keywords if k in target_text)
+            if matches_count == 0:
+                continue # Discard completely irrelevant results (noise from description-based matches)
 
             # Deduplication
             isbn = ""
@@ -578,52 +576,30 @@ def search_books_by_title(query, start_index=0):
                 "year": year,
                 "cover_url": cover_url,
                 "isbn": isbn,
-                "description": info.get("description", "") # Capture description
+                "description": info.get("description", "")
             })
         
-        # HYBRID TIERED SORTING (Multi-Keyword + Author Support)
-        # Tier 1 (S-Rank): All Keywords in (Title+Author) AND Recent (<= 5 years) -> Score 2000+
-        # Tier 2 (A-Rank): All Keywords in (Title+Author) (Older)                -> Score 1000+
-        # Tier 3 (B-Rank): Partial Title Match / Fuzzy / Desc Match              -> Score 0+
+        # HYBRID TIERED SORTING (Refined)
         def tiered_score(book):
             score = 0
-            
-            # Prepare Normalized Strings
-            # Split query by space (half or full width)
-            keywords = re.split(r'[ 　]+', query.strip().lower())
-            keywords = [k for k in keywords if k] # Remove empty
-            
-            # Target: Title + Author (Normalized)
             target_text = (book['title'] + " " + book['author']).lower()
-            desc_text = book['description'].lower()
             
-            # 1. Multi-Keyword Check
-            all_keywords_found = all(k in target_text for k in keywords)
+            # 1. Exact Match Check (High Priority)
+            all_keywords_found = all(k in target_text for k in search_keywords)
             
             if all_keywords_found:
-                 # S/A Rank: All keywords exist in Title OR Author
                  score += 1000
-                 
-                 # Recency Check (S-Rank)
+                 # Recency Boost
                  if book['year'] >= (current_year - 5):
                      score += 1000
             else:
-                # B-Rank Check: Do keywords appear in Description?
-                # If keywords in Description but NOT Title, give it a small boost over pure noise
-                all_in_desc = all(k in desc_text for k in keywords)
-                
-                # Fuzzy Match on Title
+                # Partial Match ranking
                 clean_query = query.replace(" ", "").replace("　", "").lower()
                 clean_title = book['title'].replace(" ", "").replace("　", "").lower()
                 match_ratio = difflib.SequenceMatcher(None, clean_query, clean_title).ratio()
-                
                 score += (match_ratio * 500)
-                
-                if all_in_desc:
-                    score += 300 # Boost if description matches context (e.g. "OHM" book about "Ryomon")
 
-            # 2. Base Year Score (Newer is always slightly better within same Tier)
-            # 2025 -> 20.25 pts
+            # 2. Base Year Score
             score += (book['year'] / 100.0)
             
             return score
