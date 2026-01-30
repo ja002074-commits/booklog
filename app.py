@@ -38,171 +38,148 @@ st.markdown("""
 # Custom CSS with ROBUST Device Separation
 st.markdown("""
 <style>
-/* 1. Global Gradient Background (PIVOT Style) & Atmosphere */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+/* 1. Global Minimalist Design (MUJI Style) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 .stApp {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Deep Purple-Blue Gradient */
-    background-attachment: fixed;
-    color: #ffffff;
-    font-family: "Montserrat", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
-    letter-spacing: 0.03em;
+    background-color: #FFFFFF; /* Pure White Background */
+    color: #444444; /* Soft Black Text */
+    font-family: "Inter", "Noto Sans JP", sans-serif;
+    letter-spacing: 0.02em;
 }
 
-/* 2. Glassmorphism Sidebar (Dark/Transparent) */
+/* 2. Sidebar (Light Grey & Clean) */
 section[data-testid="stSidebar"] {
-    background-color: rgba(20, 20, 30, 0.4) !important; /* Dark Glass */
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 5px 0 25px rgba(0,0,0,0.2);
-    backdrop-filter: blur(12px);
+    background-color: #F9F9F9 !important; /* Very Light Grey */
+    border-right: 1px solid #EAEAEA;
+    box-shadow: none !important;
 }
-/* Force Sidebar text to be WHITE */
+/* Sidebar Text: Dark Grey */
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3,
-section[data-testid="stSidebar"] h4,
-section[data-testid="stSidebar"] h5,
-section[data-testid="stSidebar"] h6,
 section[data-testid="stSidebar"] span,
 section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p,
-section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] span,
-section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] small,
-section[data-testid="stSidebar"] .stMarkdown {
-    color: #ffffff !important;
-    font-family: "Montserrat", "Noto Sans JP", sans-serif !important;
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+    color: #333333 !important;
+    font-weight: 500;
+}
+/* Hide the 'keyboard_double_arrow_right' text artifacts (Streamlit internal icon text leak) */
+button[kind="header"] span {
+    font-size: 0 !important; /* Hack to hide text */
+}
+button[kind="header"] span::after {
+    content: "" !important; /* Ensure no text content */
 }
 
-/* 3. Main Content Headers */
+/* 3. Typography & Headers */
 h1, h2, h3 {
-    font-family: "Montserrat", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif !important;
-    color: #ffffff !important;
-    font-weight: 800 !important; /* Bold like PIVOT */
-    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-family: "Inter", "Noto Sans JP", sans-serif !important;
+    color: #333333 !important;
+    font-weight: 600 !important;
+    text-transform: none !important; /* Remove uppercase force */
+    text-shadow: none !important; /* No shadows */
 }
 
 h1 {
-    font-size: 2.5rem !important;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-    padding-bottom: 15px;
+    font-size: 2.0rem !important;
+    border-bottom: 2px solid #7F0019; /* Accent Color Line */
+    padding-bottom: 10px;
     margin-bottom: 30px;
 }
 
-/* 4. Glassy Inputs (Main Area) */
-/* Text Input, Selectbox, Text Area */
+/* 4. Inputs (Minimalist Lines) */
 .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    border-radius: 12px !important;
-    backdrop-filter: blur(12px);
-    font-family: "Montserrat", "Noto Sans JP", sans-serif;
-}
-/* Sidebar Inputs Override (Dark Text) */
-section[data-testid="stSidebar"] .stTextInput input, 
-section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
-    background-color: #ffffff !important;
+    background-color: #FFFFFF !important;
     color: #333333 !important;
-    border: 1px solid #ccc !important;
+    border: 1px solid #DDDDDD !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+    font-size: 1rem !important;
+}
+.stTextInput input:focus, .stTextArea textarea:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {
+    border-color: #7F0019 !important; /* Crimson Accent Focus */
+    box-shadow: 0 0 0 1px #7F0019 !important;
 }
 
-/* Labels */
-.stMarkdown label, .stMarkdown p {
-    color: rgba(255, 255, 255, 0.95) !important;
-    font-weight: 500;
-}
-/* Expander (Glassy) */
-.streamlit-expanderHeader {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
-    border-radius: 8px !important;
-    font-weight: 600;
-}
-div[data-testid="stExpander"] {
-    background-color: rgba(0,0,0,0.1) !important;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-/* 5. Buttons (Vibrant Gradient) */
+/* 5. Buttons (Crimson Accent) */
 .stButton button {
-    background: linear-gradient(90deg, #ff8a00, #e52e71) !important; /* PIVOT Accent Colors */
-    color: white !important;
+    background: #7F0019 !important; /* Crimson */
+    color: #FFFFFF !important;
     border: none !important;
-    border-radius: 30px !important;
-    font-weight: 700 !important;
-    padding: 0.6rem 2rem !important;
-    box-shadow: 0 4px 15px rgba(229, 46, 113, 0.4) !important;
-    font-family: "Montserrat", sans-serif !important;
-    transition: all 0.3s ease !important;
-    letter-spacing: 0.05em !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+    padding: 0.6rem 1.5rem !important;
+    box-shadow: none !important;
+    font-family: "Inter", sans-serif !important;
+    transition: opacity 0.2s ease !important;
 }
 .stButton button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(229, 46, 113, 0.6) !important;
+    transform: none !important;
+    opacity: 0.9 !important;
+    box-shadow: none !important;
 }
 
-/* 6. GLASS CARD STYLING */
+/* 6. Card Styling (Flat & Clean) */
 .glass-card {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    background-color: #FFFFFF;
+    border: 1px solid #EAEAEA;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: none !important;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    gap: 20px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    gap: 25px;
 }
 .glass-card-img-box {
     width: 120px;
     flex-shrink: 0;
-    border-radius: 8px;
+    border-radius: 2px;
     overflow: hidden;
+    background: #F4F4F4;
 }
 .glass-card-img {
     width: 100%;
     height: auto;
     display: block;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    mix-blend-mode: multiply; /* Better integration on white */
 }
 .glass-card-content {
     flex-grow: 1;
-    color: #ffffff;
+    color: #444444;
 }
 .glass-card-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 0 0 5px 0;
-    line-height: 1.3;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+    color: #222222;
 }
 .glass-card-author {
     font-size: 0.9rem;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 10px;
+    color: #666666;
+    margin-bottom: 12px;
 }
 .tag-badge {
-    background: rgba(255,255,255,0.2);
-    padding: 3px 10px;
-    border-radius: 12px;
+    background: #F4F4F4;
+    padding: 4px 10px;
+    border-radius: 4px;
     font-size: 0.75rem;
-    margin-right: 5px;
-    color: #ffffff;
-    border: 1px solid rgba(255,255,255,0.3);
+    margin-right: 6px;
+    color: #555555;
+    border: 1px solid #DDDDDD;
     display: inline-block;
 }
 .note-box {
-    background: rgba(0,0,0,0.25);
-    padding: 10px;
-    border-radius: 8px;
-    border-left: 4px solid #ff8a00;
-    color: #f0f0f0;
+    background: #FFFAFA; /* Very light pink/white tint */
+    padding: 12px;
+    border-radius: 4px;
+    border-left: 3px solid #7F0019;
+    color: #555555;
     font-size: 0.9rem;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 /* Mobile Adjustments */
@@ -211,6 +188,7 @@ div[data-testid="stExpander"] {
         flex-direction: column;
         align-items: center;
         text-align: center;
+        padding: 20px;
     }
     .glass-card-img-box {
         width: 140px;
@@ -419,28 +397,34 @@ def fetch_book_info(isbn):
 PLACEHOLDER_IMG = "https://placehold.co/400x600/e0e0e0/999999?text=No+Image"
 
 def render_book_card(row, is_mobile=False):
-    # Prepare Data for HTML
+    # Prepare Data for HTML (Fix 'nan' issues)
     img_url = row['cover_url'] if row['cover_url'] and str(row['cover_url']) != 'nan' else PLACEHOLDER_IMG
-    title = row['title']
-    author = row['author']
-    category = row['category']
-    status = row['status']
+    
+    # Safe String Handling
+    def safe_str(val):
+        s = str(val).strip()
+        return "" if s == 'nan' or s == 'None' else s
+
+    title = safe_str(row['title'])
+    author = safe_str(row['author'])
+    category = safe_str(row['category'])
+    status = safe_str(row['status'])
     
     # Process Tags
     tags_html = ""
-    if isinstance(row['tags'], str) and row['tags']:
+    if isinstance(row['tags'], str) and row['tags'] and safe_str(row['tags']):
         tags = [t.strip() for t in row['tags'].split(',')]
         tags_html = "".join([f"<span class='tag-badge'>{t}</span>" for t in tags])
     
     # Process Notes
-    note_content = row['notes'] if isinstance(row['notes'], str) and row['notes'].strip() != 'nan' else ""
+    note_content = safe_str(row['notes'])
     note_html = ""
     if note_content:
         note_html = f"<div class='note-box'>📝 {note_content}</div>"
     else:
         note_html = "<div style='margin-top:10px; opacity:0.6; font-size:0.8rem;'>（メモなし）</div>"
 
-    # Construct Glass Card HTML
+    # Construct Minimalist Glass Card HTML
     card_html = f"""
     <div class="glass-card">
         <div class="glass-card-img-box">
@@ -462,13 +446,8 @@ def render_book_card(row, is_mobile=False):
     # Render HTML
     st.markdown(card_html, unsafe_allow_html=True)
     
-    # Edit Button (Placed nicely aligned or below)
-    # To align it well, we can use a small container or col, but plain button is OK.
-    # We'll use a unique key.
+    # Edit Button (Minimalist)
     btn_key = f"edit_{row['id']}_{'m' if is_mobile else 'p'}"
-    
-    # Use a small layout to push button to right? Or just simple.
-    # Let's simple left align for now.
     if st.button("編集", key=btn_key):
         st.session_state["edit_target"] = row['id']
         st.rerun()
@@ -728,7 +707,7 @@ def draw_pc_ui(df, categories):
         st.markdown(f"### 📚 検索結果 (Page {st.session_state['search_page'] + 1})")
         
         # CSS for Uniform Cards
-        # CSS for Uniform Cards (PIVOT Style Update)
+        # CSS for Uniform Cards (Minimalist MUJI Style)
         st.markdown("""
         <style>
         .search-card-content {
@@ -737,11 +716,16 @@ def draw_pc_ui(df, categories):
             flex-direction: column;
             justify-content: flex-start;
             overflow: hidden;
-            background-color: rgba(255, 255, 255, 0.1); /* Glass Background */
-            border-radius: 12px;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
+            background-color: #FFFFFF; /* White Card */
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #EAEAEA;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .search-card-content:hover {
+            border-color: #7F0019; /* Crimson Hover */
+            transform: translateY(-2px);
         }
         .search-card-img-box {
             height: 140px;
@@ -749,31 +733,31 @@ def draw_pc_ui(df, categories):
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: rgba(255, 255, 255, 0.05); /* Slight tint */
+            background-color: #F9F9F9;
             margin-bottom: 8px;
-            border-radius: 8px;
+            border-radius: 4px;
         }
         .search-card-img {
             max-height: 100%;
             max-width: 100%;
             object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            mix-blend-mode: multiply;
         }
         .search-card-title {
-            font-weight: bold;
-            font-size: 0.95rem;
-            line-height: 1.3;
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.4;
             margin-bottom: 4px;
-            height: 2.6em;
+            height: 2.8em;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-            color: #ffffff !important; /* White Text */
+            color: #333333 !important; /* Dark Grey Text */
         }
         .search-card-meta {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8) !important; /* Light Grey Text */
+            font-size: 0.75rem;
+            color: #666666 !important; /* Medium Grey Text */
             margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
