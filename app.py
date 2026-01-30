@@ -519,13 +519,14 @@ def search_books_by_title(query, start_index=0):
                         "isbn": isbn
                     })
                 
-                # SMART SORTING LOGIC
-                # Score = (Title Similarity * 100) + (Year / 100)
-                # This prioritizes Name Match (0-100 pts) first, then Recency (0-20 pts) as tie-breaker
+                # SMART SORTING LOGIC (Revised)
+                # Goal: Balance "Relevance" and "Recency"
+                # Formula: Score = (TitleSimilarity * 50) + (max(0, Year - 2000) * 2)
+                # Effect: A 50% match from 2025 (25+50=75) beats a 100% match from 1990 (50+0=50)
                 def smart_score(book):
-                    sim = difflib.SequenceMatcher(None, query, book['title']).ratio() * 100
-                    recency = book['year'] / 100.0
-                    return sim + recency
+                    sim = difflib.SequenceMatcher(None, query, book['title']).ratio() * 50
+                    recency_bonus = max(0, book['year'] - 2000) * 2
+                    return sim + recency_bonus
                 
                 # Sort descending (Higher score is better)
                 results = sorted(raw_results, key=smart_score, reverse=True)
