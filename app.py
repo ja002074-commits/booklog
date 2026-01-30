@@ -49,21 +49,21 @@ st.markdown("""
     letter-spacing: 0.03em;
 }
 
-/* 2. Glassmorphism Sidebar */
+/* 2. Glassmorphism Sidebar (Dark/Transparent) */
 section[data-testid="stSidebar"] {
-    background-color: rgba(255, 255, 255, 0.9) !important; /* Slightly transparent white */
-    border-right: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 5px 0 25px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
+    background-color: rgba(20, 20, 30, 0.4) !important; /* Dark Glass */
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.2);
+    backdrop-filter: blur(12px);
 }
-/* Force Sidebar text to be dark */
+/* Force Sidebar text to be WHITE */
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3,
 section[data-testid="stSidebar"] span,
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
-    color: #333333 !important;
+    color: #ffffff !important;
     font-family: "Montserrat", "Noto Sans JP", sans-serif !important;
 }
 
