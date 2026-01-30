@@ -612,6 +612,11 @@ def search_books_by_title(query, start_index=0):
             # 2025 -> 20.25 pts
             score += (book['year'] / 100.0)
             
+            # 3. Penalty for Very Old Books (< 1950)
+            # User Request: "1950年より昔の書籍は、検索結果は後ろに回してください"
+            if 0 < book['year'] < 1950:
+                score -= 10000 # Heavy penalty to push to bottom
+            
             return score
         
         results = sorted(raw_results, key=tiered_score, reverse=True)
