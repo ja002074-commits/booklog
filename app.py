@@ -447,36 +447,102 @@ def render_preview_card(isbn, categories, key_suffix):
                         time.sleep(1)
                         st.rerun()
 
+def search_books_by_title(query):
+    """Search books by title via Google Books API"""
+    try:
+        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=5"
+        r = requests.get(url, timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            results = []
+            if "items" in data:
+                for item in data["items"]:
+                    info = item.get("volumeInfo", {})
+                    # Get ISBN if available
+                    isbn = ""
+                    for ident in info.get("industryIdentifiers", []):
+                        if ident["type"] == "ISBN_13": isbn = ident["identifier"]
+                        elif ident["type"] == "ISBN_10" and not isbn: isbn = ident["identifier"]
+                    
+                    results.append({
+                        "title": info.get("title", "No Title"),
+                        "author": ", ".join(info.get("authors", ["Unknown"])),
+                        "cover_url": info.get("imageLinks", {}).get("thumbnail", ""),
+                        "isbn": isbn
+                    })
+            return results
+    except: pass
+    return []
+
 def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
     st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
     
-    # 1. PC: Auto-Search via ISBN
-    st.sidebar.markdown("#### 🔍 ISBN自動検索")
-    isbn_input = st.sidebar.text_input("ISBNを入力 (Enter)", key="pc_isbn_search")
+    # 1. PC: Search via ISBN or Title
+    st.sidebar.markdown("#### 🔍 新規登録検索")
+    search_input = st.sidebar.text_input("ISBN または タイトル", key="pc_new_book_search")
     
     # Search Logic
-    if isbn_input:
-        if "last_isbn" not in st.session_state or st.session_state["last_isbn"] != isbn_input:
+    if search_input:
+        if "last_search_q" not in st.session_state or st.session_state["last_search_q"] != search_input:
             with st.spinner("検索中..."):
-                info = fetch_book_info(isbn_input)
-                if info:
-                    st.session_state["preview_data"] = info
-                    st.session_state["last_isbn"] = isbn_input
+                # Detect if ISBN (digits/hyphens)
+                clean_input = search_input.replace("-", "").strip()
+                if clean_input.isdigit() and (len(clean_input) == 10 or len(clean_input) == 13):
+                    # ISBN Search
+                    info = fetch_book_info(clean_input)
+                    if info:
+                        st.session_state["preview_data"] = info
+                        # Ensure ISBN is passed correctly
+                        if "isbn" not in st.session_state["preview_data"]: 
+                             st.session_state["preview_data"]["isbn"] = clean_input
+                        st.session_state["candidate_list"] = None
+                    else:
+                        st.sidebar.warning("見つかりませんでした")
+                        st.session_state["preview_data"] = None
                 else:
-                    st.sidebar.warning("見つかりませんでした")
-                    st.session_state["preview_data"] = None
+                    # Title Search
+                    candidates = search_books_by_title(search_input)
+                    if candidates:
+                        st.session_state["candidate_list"] = candidates
+                        st.session_state["preview_data"] = None
+                    else:
+                        st.sidebar.warning("見つかりませんでした")
+                        st.session_state["candidate_list"] = None
+                        
+                st.session_state["last_search_q"] = search_input
     
-    # Display Preview in MAIN AREA (Top) for easy visibility as requested
-    if "preview_data" in st.session_state and st.session_state["preview_data"]:
+    # Display Candidates (if any)
+    if st.session_state.get("candidate_list"):
+        st.markdown("### 📚 検索結果 (候補を選択)")
+        cols = st.columns(3) # Grid layout for candidates
+        for i, book in enumerate(st.session_state["candidate_list"]):
+            with cols[i % 3]:
+                # Candidate Card
+                with st.container(border=True):
+                    img = book.get("cover_url") if book.get("cover_url") else PLACEHOLDER_IMG
+                    try: st.image(img, use_container_width=True)
+                    except: st.image(PLACEHOLDER_IMG, use_container_width=True)
+                    st.caption(book['title'][:30] + "...")
+                    if st.button("選択", key=f"sel_cand_{i}"):
+                        st.session_state["preview_data"] = book
+                        st.session_state["candidate_list"] = None # Clear list after selection
+                        st.rerun()
+        st.markdown("---")
+
+    # Display Preview (Single Match or Selected Candidate)
+    if st.session_state.get("preview_data"):
         st.markdown("### 📝 登録候補")
-        render_preview_card(isbn_input, categories, "pc")
+        # Use ISBN from data if available, else empty (will be registered without ISBN or as is)
+        target_isbn = st.session_state["preview_data"].get("isbn", "")
+        render_preview_card(target_isbn, categories, "pc")
         st.markdown("---")
 
     # 2. Sidebar Filters
     st.sidebar.markdown("#### 📂 フィルタ")
     search_q = st.sidebar.text_input("キーワード検索", key="pc_search")
     cat_filter = st.sidebar.multiselect("カテゴリ", categories, key="pc_cat_filter")
+
     
     # Filter Logic
     filtered = df.copy()
