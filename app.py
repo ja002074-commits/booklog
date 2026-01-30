@@ -325,10 +325,10 @@ def fetch_book_data_with_image(isbn):
         if len(isbn) == 13:
             isbn10 = to_isbn10(isbn)
             if isbn10:
-                amazon_url = f"http://images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
+                amazon_url = f"https://images-na.ssl-images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
                 info_dict["cover_url"] = amazon_url
         elif len(isbn) == 10:
-             info_dict["cover_url"] = f"http://images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
+             info_dict["cover_url"] = f"https://images-na.ssl-images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
 
     return info_dict
 
@@ -388,9 +388,9 @@ def resolve_best_image_url(isbn):
     isbn = isbn.replace('-', '').strip()
     if len(isbn) == 13:
         isbn10 = to_isbn10(isbn)
-        if isbn10: return f"http://images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
+        if isbn10: return f"https://images-na.ssl-images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
     elif len(isbn) == 10:
-        return f"http://images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
+        return f"https://images-na.ssl-images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
     
     return ""
 
