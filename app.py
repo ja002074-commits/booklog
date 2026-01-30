@@ -419,6 +419,85 @@ def render_book_card(row, is_mobile=False):
 
         st.markdown("---")
 
+def render_preview_card(isbn, categories, key_suffix):
+    """Show preview of book found via ISBN before adding"""
+    if "preview_data" in st.session_state and st.session_state["preview_data"]:
+        data = st.session_state["preview_data"]
+        st.info("✅ 書籍が見つかりました")
+        
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            img_url = data.get("cover_url") if data.get("cover_url") else PLACEHOLDER_IMG
+            try:
+                st.image(img_url, width=100)
+            except:
+                st.image(PLACEHOLDER_IMG, width=100)
+        with col2:
+            st.markdown(f"**{data['title']}**")
+            st.caption(f"著者: {data['author']}")
+            
+            # Registration Form inside Preview
+            with st.form(key=f"confirm_add_{key_suffix}"):
+                c_cat = st.selectbox("カテゴリ", categories)
+                c_status = st.selectbox("状態", ["未読", "読書中", "読了"])
+                if st.form_submit_button("この本を登録する"):
+                    if add_book(data['title'], data['author'], c_cat, "", c_status, "", data['cover_url'], "", isbn):
+                        st.success("登録しました")
+                        del st.session_state["preview_data"]
+                        time.sleep(1)
+                        st.rerun()
+
+def draw_pc_ui(df, categories):
+    """Render PC Exclusive UI"""
+    st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
+    
+    # 1. PC: Auto-Search via ISBN
+    st.sidebar.markdown("#### 🔍 ISBN自動検索")
+    isbn_input = st.sidebar.text_input("ISBNを入力 (Enter)", key="pc_isbn_search")
+    
+    # Search Logic
+    if isbn_input:
+        if "last_isbn" not in st.session_state or st.session_state["last_isbn"] != isbn_input:
+            with st.spinner("検索中..."):
+                info = fetch_book_info(isbn_input)
+                if info:
+                    st.session_state["preview_data"] = info
+                    st.session_state["last_isbn"] = isbn_input
+                else:
+                    st.sidebar.warning("見つかりませんでした")
+                    st.session_state["preview_data"] = None
+    
+    # Display Preview in MAIN AREA (Top) for easy visibility as requested
+    if "preview_data" in st.session_state and st.session_state["preview_data"]:
+        st.markdown("### 📝 登録候補")
+        render_preview_card(isbn_input, categories, "pc")
+        st.markdown("---")
+
+    # 2. Sidebar Filters
+    st.sidebar.markdown("#### 📂 フィルタ")
+    search_q = st.sidebar.text_input("キーワード検索", key="pc_search")
+    cat_filter = st.sidebar.multiselect("カテゴリ", categories, key="pc_cat_filter")
+    
+    # Filter Logic
+    filtered = df.copy()
+    if search_q:
+        filtered = filtered[filtered.apply(lambda r: search_q in str(r.values), axis=1)]
+    if cat_filter:
+        filtered = filtered[filtered['category'].isin(cat_filter)]
+    
+    # Main Content
+    st.markdown(f"# 蔵書一覧 ({len(filtered)}冊)")
+    
+    for idx, row in filtered.iterrows():
+        if st.session_state.get("edit_target") == row['id']:
+            render_edit_form(row, categories, key_suffix="pc")
+        else:
+            render_book_card(row, is_mobile=False)
+            
+    # PC: Manual Add (Collapsed)
+    with st.expander("➕ 手動登録フォーム"):
+        render_add_book_form(categories, key_suffix="pc")
+
 def render_edit_form(row, categories, key_suffix):
     with st.form(key=f"edit_form_{row['id']}_{key_suffix}"):
         st.markdown(f"#### 編集: {row['title']}")
