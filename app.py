@@ -498,12 +498,17 @@ def search_books_by_title(query):
                     if key in unique_set: continue
                     unique_set.add(key)
                     
+                    # Cover URL with Fallback
+                    cover_url = info.get("imageLinks", {}).get("thumbnail", "")
+                    if not cover_url and isbn:
+                        cover_url = get_amazon_image_url(isbn)
+                    
                     raw_results.append({
                         "title": info.get("title", "No Title"),
                         "author": ", ".join(info.get("authors", ["Unknown"])),
                         "publisher": info.get("publisher", ""), # Add Publisher
                         "publishedDate": info.get("publishedDate", "")[:4], # Year only
-                        "cover_url": info.get("imageLinks", {}).get("thumbnail", ""),
+                        "cover_url": cover_url,
                         "isbn": isbn
                     })
                 
