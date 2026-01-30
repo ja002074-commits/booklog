@@ -36,148 +36,126 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Custom CSS (MUJI Minimalist Report Style)
+# Custom CSS (Calm Gradient & Clean Inputs)
 st.markdown("""
 <style>
-/* 1. Typography & Grid */
+/* 1. Typography & Atmosphere */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 .stApp {
-    background-color: #FFFFFF;
-    color: #333333;
-    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Arial, sans-serif;
-    line-height: 1.8; /* Breathable spacing */
+    background: linear-gradient(180deg, #FDFBF7 0%, #F2F0EB 100%); /* Calm warm gradient */
+    color: #444444;
+    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    letter-spacing: 0.03em;
 }
 
-/* 2. Headings - Pure Hierarchy */
-h1, h2, h3, h4, h5, h6 {
-    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif !important;
-    font-weight: 700 !important;
+/* 2. Headings - Sophisticated & Calm */
+h1, h2, h3 {
+    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", serif !important;
     color: #333333 !important;
-    margin-bottom: 1.5rem !important;
-    letter-spacing: 0.05em;
+    font-weight: 500 !important;
 }
 
 h1 {
-    font-size: 2.4rem !important;
-    border: none !important;
-    margin-top: 1rem;
+    font-size: 2.2rem !important;
+    border-bottom: 1px solid #D8D2C0; /* Soft border */
+    padding-bottom: 15px;
+    margin-bottom: 30px;
 }
 
-h3 {
-    font-size: 1.3rem !important;
-    margin-top: 2rem !important;
-}
-
-/* 3. Sidebar - Seamless & Clean */
+/* 3. Sidebar - Soft Blend */
 section[data-testid="stSidebar"] {
-    background-color: #F8F8F8; /* Very pale grey */
-    border-right: 1px solid #EEEEEE;
-}
-section[data-testid="stSidebar"] .block-container {
-    padding-top: 3rem;
+    background-color: #EFEDE8;
+    border-right: 1px solid #E5E0D8;
 }
 
-/* 4. Inputs - Functional Beauty (No shadow, just lines) */
-div[data-baseweb="select"] > div,
-div[data-baseweb="input"] > div,
+/* 4. Inputs - FIXING THE ARTIFACTS */
+/* Resetting aggressive borders. Targeting the actual input element more safely */
 input, textarea, select {
     background-color: #FFFFFF !important;
     color: #333333 !important;
-    border: 1px solid #DDDDDD !important;
-    border-radius: 0px !important;
-    font-size: 0.95rem;
-    padding: 0.5rem;
+    border: 1px solid #CCCCCC !important;
+    border-radius: 4px !important; /* Slightly rounded for "calm" feel */
+    padding: 8px !important;
 }
 
-/* Focus: MUJI Red Accent only on interaction */
+/* Fix specific Streamlit/BaseWeb structures to avoid double borders */
+div[data-baseweb="select"] > div,
+div[data-baseweb="input"] > div {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CCCCCC !important; 
+    border-radius: 4px !important;
+    box-shadow: none !important;
+}
+
+/* Remove default focus glows and apply calm accent */
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within {
-    border-color: #7F0019 !important;
+    border-color: #8C7B70 !important; /* Muted warm brown/grey */
+    outline: 1px solid #8C7B70 !important;
     box-shadow: none !important;
-    outline: 1px solid #7F0019 !important;
 }
 
-/* Remove artifact icons */
 div[data-baseweb="select"] svg {
-    fill: #999999 !important;
+    fill: #888888 !important;
 }
 
-/* 5. Buttons - Minimalist */
+/* 5. Buttons - Soft & Minimal */
 .stButton > button {
     background-color: #FFFFFF;
-    border: 1px solid #CCCCCC;
-    color: #333333;
-    border-radius: 0px;
-    font-weight: 500;
-    padding: 0.6rem 1.5rem;
-    transition: all 0.2s ease;
-    box-shadow: none;
+    border: 1px solid #C0C0C0;
+    color: #555555;
+    border-radius: 4px;
+    font-weight: 400;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 .stButton > button:hover {
-    background-color: #7F0019;
+    background-color: #8C7B70;
     color: #FFFFFF;
-    border-color: #7F0019;
+    border-color: #8C7B70;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* 6. Cards & Layout (The "Report" Feel) */
-/* Reset Expander style to be seamless */
+/* 6. Layout Elements */
 .streamlit-expanderHeader {
-    background-color: #FFFFFF;
+    background-color: transparent;
     border: none;
-    border-bottom: 1px solid #EEEEEE;
-    color: #333333;
-    font-size: 0.9rem;
-    border-radius: 0;
+    color: #555555;
+    font-size: 0.95rem;
 }
 div[data-testid="stExpander"] {
-    border: none;
-    box-shadow: none;
+    border: 1px solid #EAEAEA;
+    border-radius: 6px;
     background-color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 
-/* Note Box - The "Main Content" */
 .note-box {
-    background-color: #F9F9F9; /* Slight contrast for content area */
-    border: none;
-    border-left: 3px solid #7F0019; /* The only strong accent */
-    padding: 24px;
-    color: #444444;
-    border-radius: 0px;
-    margin-bottom: 24px;
-    font-size: 0.95rem;
-    line-height: 2.0;
-}
-
-/* Tags - Minimal labels */
-.tag-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    margin: 0 6px 6px 0;
-    background: #FFFFFF;
-    color: #666666;
-    font-size: 0.8rem;
+    background: linear-gradient(to right bottom, #FFFFFF, #FAFAFA);
     border: 1px solid #E0E0E0;
-    border-radius: 0px;
+    border-left: 4px solid #9E2A2B; /* Muted Red Accent */
+    padding: 20px;
+    color: #444444;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 
-/* Horizontal List Divider */
-hr {
-    border: 0;
-    border-top: 1px solid #EEEEEE;
-    margin: 40px 0;
+.tag-badge {
+    background-color: #F0EFE9;
+    color: #555555;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 0.8rem;
 }
 
-/* Images - Clean, no border/shadow unless necessary */
 img {
-    border: 1px solid #F0F0F0;
-}
-
-/* Responsive Utilities */
-@media (min-width: 768px) {
-    div[data-testid="stExpander"]:has(div#mobile-only-marker) {
-        display: none !important;
-    }
+    border-radius: 2px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Soft floating shadow */
+    border: none;
 }
 </style>
 """, unsafe_allow_html=True)
