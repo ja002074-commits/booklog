@@ -449,8 +449,8 @@ def render_preview_card(isbn, categories, key_suffix):
 
 import difflib
 
-def search_books_by_title(query):
-    """Search books by title via Google Books API (Robust + Sorted)"""
+def search_books_by_title(query, start_index=0):
+    """Search books by title via Google Books API (Robust + Sorted + Pagination)"""
     url = "https://www.googleapis.com/books/v1/volumes"
     results = []
     debug_log = ""
@@ -459,7 +459,8 @@ def search_books_by_title(query):
         # 1. Try with language restriction first
         params = {
             "q": query,
-            "maxResults": 30, # Fetch more to sort better
+            "maxResults": 20, # Reduced to 20 per page for pagination standard
+            "startIndex": start_index,
             "langRestrict": "ja",
             "printType": "books",
             "country": "JP"
@@ -471,7 +472,8 @@ def search_books_by_title(query):
         if r.status_code != 200 or not r.json().get("items"):
             params = {
                 "q": query,
-                "maxResults": 30,
+                "maxResults": 20,
+                "startIndex": start_index,
                 "country": "JP"
             }
             r = requests.get(url, params=params, timeout=5)
@@ -503,21 +505,30 @@ def search_books_by_title(query):
                     if not cover_url and isbn:
                         cover_url = get_amazon_image_url(isbn)
                     
+                    # Year for sorting
+                    pub_date = info.get("publishedDate", "")
+                    year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
+                    
                     raw_results.append({
                         "title": info.get("title", "No Title"),
                         "author": ", ".join(info.get("authors", ["Unknown"])),
-                        "publisher": info.get("publisher", ""), # Add Publisher
-                        "publishedDate": info.get("publishedDate", "")[:4], # Year only
+                        "publisher": info.get("publisher", ""),
+                        "publishedDate": f"{year}" if year else "",
+                        "year": year, # Logic only
                         "cover_url": cover_url,
                         "isbn": isbn
                     })
                 
-                # Sort by Similarity to Query
-                def similarity(book):
-                    return difflib.SequenceMatcher(None, query, book['title']).ratio()
+                # SMART SORTING LOGIC
+                # Score = (Title Similarity * 100) + (Year / 100)
+                # This prioritizes Name Match (0-100 pts) first, then Recency (0-20 pts) as tie-breaker
+                def smart_score(book):
+                    sim = difflib.SequenceMatcher(None, query, book['title']).ratio() * 100
+                    recency = book['year'] / 100.0
+                    return sim + recency
                 
-                # Sort descending (most similar first)
-                results = sorted(raw_results, key=similarity, reverse=True)
+                # Sort descending (Higher score is better)
+                results = sorted(raw_results, key=smart_score, reverse=True)
                 
             else:
                 debug_log += "No items found in JSON. "
@@ -538,18 +549,29 @@ def draw_pc_ui(df, categories):
     search_input = st.sidebar.text_input("ISBN または タイトル", key="pc_new_book_search")
     st.sidebar.caption("※タイトル検索は候補一覧が表示されます")
     
+    # Init Page State
+    if "search_page" not in st.session_state:
+        st.session_state["search_page"] = 0
+    
     # Search Logic
     if search_input:
+        # Reset page on new search
         if "last_search_q" not in st.session_state or st.session_state["last_search_q"] != search_input:
-            with st.spinner("検索中..."):
-                # Detect if ISBN (digits/hyphens)
+             st.session_state["search_page"] = 0
+             st.session_state["last_search_q"] = search_input
+             
+        # Trigger Search (if new query OR page changed) (Logic simplified to always check state)
+        # We store 'current_results_key' to avoid re-fetching on every re-run unless page/query changes
+        current_key = f"{search_input}_{st.session_state['search_page']}"
+        
+        if "last_fetched_key" not in st.session_state or st.session_state["last_fetched_key"] != current_key:
+            with st.spinner(f"検索中... (Page {st.session_state['search_page'] + 1})"):
                 clean_input = search_input.replace("-", "").strip()
                 if clean_input.isdigit() and (len(clean_input) == 10 or len(clean_input) == 13):
-                    # ISBN Search
+                     # ISBN Search (No pagination needed)
                     info = fetch_book_info(clean_input)
                     if info:
                         st.session_state["preview_data"] = info
-                        # Ensure ISBN is passed correctly
                         if "isbn" not in st.session_state["preview_data"]: 
                              st.session_state["preview_data"]["isbn"] = clean_input
                         st.session_state["candidate_list"] = None
@@ -557,20 +579,21 @@ def draw_pc_ui(df, categories):
                         st.sidebar.warning("見つかりませんでした")
                         st.session_state["preview_data"] = None
                 else:
-                    # Title Search
-                    candidates, debug_msg = search_books_by_title(search_input)
+                    # Title Search with Pagination
+                    start_idx = st.session_state["search_page"] * 20
+                    candidates, debug_msg = search_books_by_title(search_input, start_index=start_idx)
                     if candidates:
                         st.session_state["candidate_list"] = candidates
                         st.session_state["preview_data"] = None
                     else:
-                        st.sidebar.warning(f"見つかりませんでした\n({debug_msg})")
+                        st.sidebar.warning(f"結果がありません\n({debug_msg})")
                         st.session_state["candidate_list"] = None
-                        
-                st.session_state["last_search_q"] = search_input
+            
+            st.session_state["last_fetched_key"] = current_key
     
     # Display Candidates (if any)
     if st.session_state.get("candidate_list"):
-        st.markdown(f"### 📚 検索結果 ({len(st.session_state['candidate_list'])}件)")
+        st.markdown(f"### 📚 検索結果 (Page {st.session_state['search_page'] + 1})")
         
         # CSS for Uniform Cards
         st.markdown("""
@@ -654,6 +677,22 @@ def draw_pc_ui(df, categories):
                         st.session_state["preview_data"] = book
                         st.session_state["candidate_list"] = None
                         st.rerun()
+        
+        # Pagination Buttons
+        p_col1, p_col2, p_col3 = st.columns([1, 2, 1])
+        with p_col1:
+            if st.session_state["search_page"] > 0:
+                if st.button("In Prever (前へ)"):
+                    st.session_state["search_page"] -= 1
+                    st.session_state.pop("last_fetched_key", None) # Force refetch
+                    st.rerun()
+        with p_col3:
+            if len(candidates) >= 20: # Assuming full page means more likely exists
+                if st.button("Next (次へ)"):
+                    st.session_state["search_page"] += 1
+                    st.session_state.pop("last_fetched_key", None) # Force refetch
+                    st.rerun()
+                    
         st.markdown("---")
 
     # Display Preview (Single Match or Selected Candidate)
