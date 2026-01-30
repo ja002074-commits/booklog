@@ -34,7 +34,7 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Custom CSS with Device Separation
+# Custom CSS with ROBUST Device Separation
 st.markdown("""
 <style>
 /* 1. Typography & Atmosphere */
@@ -61,19 +61,41 @@ h1 {
     margin-bottom: 30px;
 }
 
-/* 3. Device Separation Logic */
+/* 3. ROBUST Device Separation Logic using :has() */
+/* By default, hide nothing. Then selectively hide based on marker presence. */
+
+/* Mobile View: Width < 768px */
 @media (max-width: 767px) {
-    .pc-only { display: none !important; }
-    .mobile-only { display: block !important; }
+    /* Hide any container that has the PC Marker */
+    div[data-testid="stVerticalBlock"]:has(div.pc-marker) {
+        display: none !important;
+    }
+    /* Ensure Mobile Marker container is visible */
+    div[data-testid="stVerticalBlock"]:has(div.mobile-marker) {
+        display: flex !important;
+        flex-direction: column;
+    }
     
-    /* Mobile Adjustments */
-    .stApp { padding-top: 20px; }
+    .stApp { padding-top: 10px; }
     h1 { font-size: 1.5rem !important; }
 }
 
+/* PC View: Width >= 768px */
 @media (min-width: 768px) {
-    .pc-only { display: block !important; }
-    .mobile-only { display: none !important; }
+    /* Hide any container that has the Mobile Marker */
+    div[data-testid="stVerticalBlock"]:has(div.mobile-marker) {
+        display: none !important;
+    }
+    /* Ensure PC Marker container is visible */
+    div[data-testid="stVerticalBlock"]:has(div.pc-marker) {
+        display: flex !important;
+        flex-direction: column;
+    }
+}
+
+/* Markers are invisible */
+.pc-marker, .mobile-marker {
+    display: none;
 }
 
 /* 4. Common Inputs Styling (MUJI Minimalist) */
@@ -409,7 +431,6 @@ def draw_pc_ui(df, categories):
     
     # Search Logic
     if isbn_input:
-        # Avoid re-fetching if same ISBN
         if "last_isbn" not in st.session_state or st.session_state["last_isbn"] != isbn_input:
             with st.spinner("検索中..."):
                 info = fetch_book_info(isbn_input)
@@ -420,8 +441,9 @@ def draw_pc_ui(df, categories):
                     st.sidebar.warning("見つかりませんでした")
                     st.session_state["preview_data"] = None
     
-    # Show Preview in Main Area if exists
+    # Display Preview in MAIN AREA (Top) for easy visibility as requested
     if "preview_data" in st.session_state and st.session_state["preview_data"]:
+        st.markdown("### 📝 登録候補")
         render_preview_card(isbn_input, categories, "pc")
         st.markdown("---")
 
@@ -455,8 +477,9 @@ def draw_mobile_ui(df, categories):
     st.markdown("### 📱 読書録")
     
     # 1. Mobile: Camera Scanner (TOP PRIORITY)
+    # UNCONDITIONAL RENDER for Mobile
+    st.markdown("#### 📷 バーコード読取")
     if PYZBAR_AVAILABLE:
-        st.markdown("#### 📷 バーコード読取")
         img_file = st.camera_input("バーコードを写してください", key="mob_cam")
         if img_file:
             try:
@@ -465,19 +488,18 @@ def draw_mobile_ui(df, categories):
                 if decoded:
                     isbn = decoded[0].data.decode('utf-8')
                     st.success(f"ISBN: {isbn}")
-                    # Auto-check logic
                     info = fetch_book_info(isbn)
                     if info:
                         st.session_state["preview_data"] = info
-                        # Mobile Preview
                         render_preview_card(isbn, categories, "mob_cam")
             except:
                 st.error("読み取れませんでした")
+    else:
+        st.warning("⚠️ バーコード読取ライブラリ(zbar)が見つかりません。")
     
     # 2. Results / List
     st.markdown("---")
     
-    # Hide the "Search/Filter" label to be cleaner, just show input
     with st.expander("🔍 検索・フィルタ", expanded=True):
         m_search = st.text_input("キーワード", key="mob_search")
         m_cat = st.selectbox("カテゴリ", ["すべて"] + categories, key="mob_cat")
@@ -490,6 +512,7 @@ def draw_mobile_ui(df, categories):
 
     st.caption(f"{len(filtered)} 冊")
     
+    # Simple List
     for idx, row in filtered.iterrows():
         if st.session_state.get("edit_target") == row['id']:
             render_edit_form(row, categories, key_suffix="mob")
@@ -528,7 +551,6 @@ def render_add_book_form(categories, key_suffix):
         n_status = st.selectbox("状態", ["未読", "読書中", "読了"])
         
         if st.form_submit_button("登録"):
-            # Check if ISBN is provided, try to get cover
             c_url = ""
             if n_isbn:
                 c_url = resolve_best_image_url(n_isbn)
@@ -543,15 +565,15 @@ def main():
     df = get_books()
     categories = get_categories()
     
-    # Wrapper for PC
-    st.markdown('<div class="pc-only">', unsafe_allow_html=True)
-    draw_pc_ui(df, categories)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # PC Wrapper with Marker
+    with st.container():
+        st.markdown('<div class="pc-marker"></div>', unsafe_allow_html=True)
+        draw_pc_ui(df, categories)
     
-    # Wrapper for Mobile
-    st.markdown('<div class="mobile-only">', unsafe_allow_html=True)
-    draw_mobile_ui(df, categories)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Mobile Wrapper with Marker
+    with st.container():
+        st.markdown('<div class="mobile-marker"></div>', unsafe_allow_html=True)
+        draw_mobile_ui(df, categories)
 
 if __name__ == "__main__":
     main()
