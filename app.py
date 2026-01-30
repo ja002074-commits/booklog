@@ -36,83 +36,81 @@ st.markdown("""
 </script>
 """, unsafe_allow_html=True)
 
-# Custom CSS (Refined MUJI Style)
+# Custom CSS (MUJI Minimalist Report Style)
 st.markdown("""
 <style>
-/* Font: Standard Japanese Gothic for MUJI-like cleanliness */
+/* 1. Typography & Grid */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
-/* Main Background - Subtle Kraft Texture */
 .stApp {
-    background-color: #F4F3F0; 
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
-    background-size: 20px 20px;
-    background-blend-mode: soft-light;
-    color: #444444; 
-    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Biz UDPGothic", "Meiryo", "Noto Sans JP", sans-serif;
+    background-color: #FFFFFF;
+    color: #333333;
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Arial, sans-serif;
+    line-height: 1.8; /* Breathable spacing */
 }
 
-/* Typography */
+/* 2. Headings - Pure Hierarchy */
 h1, h2, h3, h4, h5, h6 {
-    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif !important;
+    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif !important;
     font-weight: 700 !important;
-    color: #7F0019 !important;
-    letter-spacing: 0.04em;
+    color: #333333 !important;
+    margin-bottom: 1.5rem !important;
+    letter-spacing: 0.05em;
 }
 
 h1 {
-    font-size: 2.0rem !important;
-    border-bottom: 1px solid #7F0019; /* Thinner underline */
-    padding-bottom: 15px;
-    margin-bottom: 30px;
-    line-height: 1.4;
+    font-size: 2.4rem !important;
+    border: none !important;
+    margin-top: 1rem;
 }
 
-/* Sidebar */
+h3 {
+    font-size: 1.3rem !important;
+    margin-top: 2rem !important;
+}
+
+/* 3. Sidebar - Seamless & Clean */
 section[data-testid="stSidebar"] {
-    background-color: #E6DEC9; /* Stronger Kraft */
-    border-right: 1px solid #D8CEBB;
+    background-color: #F8F8F8; /* Very pale grey */
+    border-right: 1px solid #EEEEEE;
 }
-section[data-testid="stSidebar"] * {
-    color: #444444 !important;
+section[data-testid="stSidebar"] .block-container {
+    padding-top: 3rem;
 }
 
-/* INPUTS - The "Stylish" Thin Border */
+/* 4. Inputs - Functional Beauty (No shadow, just lines) */
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div,
 input, textarea, select {
     background-color: #FFFFFF !important;
     color: #333333 !important;
-    border: 1px solid #C0C0C0 !important; /* Stylish thin grey border */
+    border: 1px solid #DDDDDD !important;
     border-radius: 0px !important;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    padding: 0.5rem;
 }
 
-/* Focus states - MUJI Red Thin Outline */
+/* Focus: MUJI Red Accent only on interaction */
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within {
     border-color: #7F0019 !important;
-    box-shadow: 0 0 0 1px #7F0019 !important; /* Thin consistent outline */
+    box-shadow: none !important;
+    outline: 1px solid #7F0019 !important;
 }
 
-/* Selectbox Artifact Fix */
-div[data-baseweb="select"] span {
-    color: #333333 !important;
-}
+/* Remove artifact icons */
 div[data-baseweb="select"] svg {
-    fill: #666666 !important;
+    fill: #999999 !important;
 }
 
-/* Buttons */
+/* 5. Buttons - Minimalist */
 .stButton > button {
     background-color: #FFFFFF;
-    border: 1px solid #999999;
+    border: 1px solid #CCCCCC;
     color: #333333;
     border-radius: 0px;
-    font-weight: 400;
-    padding: 0.5rem 1.2rem;
+    font-weight: 500;
+    padding: 0.6rem 1.5rem;
     transition: all 0.2s ease;
     box-shadow: none;
 }
@@ -122,49 +120,57 @@ div[data-baseweb="select"] svg {
     border-color: #7F0019;
 }
 
-/* Expander */
+/* 6. Cards & Layout (The "Report" Feel) */
+/* Reset Expander style to be seamless */
 .streamlit-expanderHeader {
     background-color: #FFFFFF;
-    border: 1px solid #E0E0E0;
+    border: none;
+    border-bottom: 1px solid #EEEEEE;
     color: #333333;
-    border-radius: 0px;
     font-size: 0.9rem;
+    border-radius: 0;
 }
 div[data-testid="stExpander"] {
-    border: 1px solid #E0E0E0;
-    border-top: none;
-    border-radius: 0px;
+    border: none;
+    box-shadow: none;
     background-color: #FFFFFF;
 }
 
-/* Note Box & Cards */
+/* Note Box - The "Main Content" */
 .note-box {
-    background-color: #FFFFFF;
-    border: 1px solid #E0E0E0;
-    border-left: 3px solid #7F0019; 
-    padding: 15px;
-    color: #333333;
+    background-color: #F9F9F9; /* Slight contrast for content area */
+    border: none;
+    border-left: 3px solid #7F0019; /* The only strong accent */
+    padding: 24px;
+    color: #444444;
     border-radius: 0px;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+    line-height: 2.0;
 }
 
-/* Tags */
+/* Tags - Minimal labels */
 .tag-badge {
     display: inline-block;
-    padding: 3px 10px;
-    margin: 2px;
-    background: #F0F0EE; /* Very light grey */
-    color: #444444;
-    font-size: 0.75rem;
-    border: 1px solid #DDD;
+    padding: 4px 10px;
+    margin: 0 6px 6px 0;
+    background: #FFFFFF;
+    color: #666666;
+    font-size: 0.8rem;
+    border: 1px solid #E0E0E0;
     border-radius: 0px;
 }
 
-/* Images */
+/* Horizontal List Divider */
+hr {
+    border: 0;
+    border-top: 1px solid #EEEEEE;
+    margin: 40px 0;
+}
+
+/* Images - Clean, no border/shadow unless necessary */
 img {
-    border: 1px solid #EEEEEE;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #F0F0F0;
 }
 
 /* Responsive Utilities */
