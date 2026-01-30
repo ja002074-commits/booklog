@@ -441,10 +441,10 @@ def render_preview_card(isbn, categories, key_suffix):
             with st.form(key=f"confirm_add_{key_suffix}"):
                 c_cat = st.selectbox("カテゴリ", categories)
                 c_status = st.selectbox("状態", ["未読", "読書中", "読了"])
-                c_memo = st.text_area("メモ", height=100) # Added Memo Field
+                c_point = st.text_area("ポイント", height=100) # Changed from Memo to Point
                 
                 if st.form_submit_button("この本を登録する"):
-                    if add_book(data['title'], data['author'], c_cat, "", c_status, c_memo, data['cover_url'], "", isbn):
+                    if add_book(data['title'], data['author'], c_cat, "", c_status, c_point, data['cover_url'], "", isbn):
                         st.success("登録しました")
                         del st.session_state["preview_data"]
                         time.sleep(1)
