@@ -1,0 +1,9 @@
+streamlit
+pandas
+st-gsheets-connection
+google-generativeai
+requests
+pyzbar
+opencv-python-headless
+numpy
+qrcode

@@ -1,0 +1,22 @@
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Cloudflare
+cloudflared
+cloudflared.tgz
+tunnel.log
+tunnel_url.txt
+
+# Venv
+venv/
+
+# Environment
+.env
+
+# MacOS
+.DS_Store
