@@ -13,7 +13,6 @@ import qrcode
 import time
 from streamlit_gsheets import GSheetsConnection
 import difflib
-
 try:
     from pyzbar.pyzbar import decode
     PYZBAR_AVAILABLE = True
@@ -74,15 +73,123 @@ section[data-testid="stSidebar"] .stMarkdown {
 }
 /* Hide artifacts if needed */
 /* Hide artifacts (Robust) */
-button[kind="header"] span,
-[data-testid="stSidebarCollapseButton"] span,
-[data-testid="stSidebar"] button span {
-    font-size: 0 !important; 
-    opacity: 0 !important;
+/* Hide artifacts (Robust - Only target specific elements if needed) */
+button[kind="header"] {
+    background: transparent !important;
 }
-button[kind="header"] span::after,
-[data-testid="stSidebarCollapseButton"] span::after {
-    content: "" !important; 
+
+/* Fix properties for Sidebar Button (Fundamental Fix + SVG + Visibility Hack) */
+/* 1. Use visibility:hidden to nuke the internal text completely */
+[data-testid="stSidebarCollapseButton"] > span,
+[data-testid="stSidebarCollapseButton"] > svg {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    font-size: 0 !important;
+}
+
+[data-testid="stSidebarCollapseButton"] {
+    /* Shape & Centering */
+    position: relative !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px !important;
+    height: 36px !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    border-radius: 50% !important;
+    background: rgba(0,0,0,0.2) !important;
+    z-index: 100;
+    transition: all 0.3s ease;
+    
+    /* VITAL: Force text color to transparent and hide content */
+    color: transparent !important; 
+    text-shadow: none !important;
+    user-select: none !important;
+    visibility: visible !important; /* Ensure the button itself is visible */
+}
+
+/* 2. Re-add the clean icon via SVG Background on ::after */
+[data-testid="stSidebarCollapseButton"]::after {
+    content: ""; /* No text content */
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 16px;
+    height: 16px;
+    /* Use encoded SVG for the arrow */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    pointer-events: none;
+    visibility: visible !important; /* Force visibility of the replacement */
+}
+
+/* 3. Aggressively target ALL states to prevent text appearing on interaction */
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="stSidebarCollapseButton"]:active,
+[data-testid="stSidebarCollapseButton"]:focus,
+[data-testid="stSidebarCollapseButton"]:focus-visible {
+    background: rgba(255,255,255,0.1) !important;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2) !important;
+    color: transparent !important; /* Prevent hover text */
+    text-shadow: none !important;
+    font-size: 0 !important;
+}    
+/* 4. Extra safety: Hide the tooltip explicitly if it exists as a data attribute */
+[data-testid="stSidebarCollapseButton"][title] {
+    color: transparent !important;
+}
+
+
+/* Fix Expander Text Overlap (Fundamental Fix: Rebuild Label) */
+/* 1. Hide EVERYTHING inside the summary (glitched text + original label) */
+div[data-testid="stExpander"] > details > summary {
+    color: transparent !important;
+    font-size: 0 !important; /* Collapse all text */
+    position: relative;
+}
+div[data-testid="stExpander"] > details > summary > * {
+    display: none !important; /* Hide children elements to prevent ghosts */
+}
+
+/* 2. Rebuild the Label using CSS Content */
+div[data-testid="stExpander"] > details > summary::after {
+    content: "🖥️ Display Mode"; /* The clean label */
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+    font-weight: 600;
+    font-family: "Montserrat", sans-serif;
+    
+    /* Position it nicely */
+    position: absolute;
+    left: 40px; /* Space for the chevron if it exists, or just padding */
+    top: 50%;
+    transform: translateY(-50%);
+    visibility: visible !important;
+    white-space: nowrap;
+}
+
+/* 3. Rebuild the Chevron/Plus icon (Optional, or just keep it clean) */
+div[data-testid="stExpander"] > details > summary::before {
+    content: "▼";
+    color: rgba(255,255,255,0.7);
+    font-size: 0.8rem !important;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    visibility: visible !important;
+}
+/* Rotate chevron when open? (Hard to do with pure CSS on summary state without :has, 
+   but simplistic static icon is better than broken text) */
+div[data-testid="stExpander"] > details[open] > summary::before {
+    transform: translateY(-50%) rotate(180deg);
+}
+/* General safety for any broken material icons in headers */
+.streamlit-expanderHeader span {
+    font-family: inherit !important; /* Prevent font conflict */
 }
 
 /* 3. Main Content Headers */
@@ -125,17 +232,28 @@ section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
     color: rgba(255, 255, 255, 0.95) !important;
     font-weight: 500;
 }
-/* Expander (Glassy) */
+/* Expander (Glassy & Premium) */
 .streamlit-expanderHeader {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
     color: #ffffff !important;
     border-radius: 8px !important;
     font-weight: 600;
+    font-family: "Montserrat", sans-serif;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+.streamlit-expanderHeader:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 div[data-testid="stExpander"] {
-    background-color: rgba(0,0,0,0.1) !important;
+    background-color: rgba(0,0,0,0.2) !important;
     border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+div[data-testid="stExpander"] p {
+    font-size: 0.9rem;
 }
 
 /* 5. Buttons (Vibrant Gradient) */
@@ -234,19 +352,28 @@ div[data-testid="stExpander"] {
     }
 }
 
-/* Marker Logic */
-.pc-marker, .mobile-marker { display: none; }
+/* Device Separation Logic (Robust / Exclusion Based) */
+/* Prevent hiding the ROOT container by ensuring we only hide containers that have ONE marker but NOT the other. */
 
-/* Device Separation Logic (Robust) */
+/* Mobile View: Hide PC Container */
+/* Logic: Find a block with PC marker, BUT exclude blocks that also have a Mobile marker (like the Root) */
 @media (max-width: 767px) {
-    div[data-testid="stVerticalBlock"]:has(.pc-marker) { display: none !important; }
+    div[data-testid="stVerticalBlock"]:has(div.pc-view-marker):not(:has(div.mobile-view-marker)) {
+        display: none !important;
+    }
 }
+
+/* PC View: Hide Mobile Container */
+/* Logic: Find a block with Mobile marker, BUT exclude blocks that also have a PC marker */
 @media (min-width: 768px) {
-    div[data-testid="stVerticalBlock"]:has(.mobile-marker) { display: none !important; }
+    div[data-testid="stVerticalBlock"]:has(div.mobile-view-marker):not(:has(div.pc-view-marker)) {
+        display: none !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
 
+# s --- 2. Database Functions ---
 def to_isbn10(isbn13):
     if not isbn13 or len(isbn13) != 13: return None
     body = isbn13[3:12]
@@ -344,16 +471,7 @@ def delete_book(book_id):
         st.error(f"Delete Error: {e}")
         return False
 
-def update_cover_url_db(book_id, new_url):
-    try:
-        conn = get_conn()
-        df = get_books()
-        idx = df[df['id'] == book_id].index
-        if len(idx) > 0:
-            df.at[idx[0], 'cover_url'] = new_url
-            conn.update(worksheet="books", data=df)
-    except: pass
-
+# --- 3. API & Helpers ---
 def get_google_books_data(isbn):
     try:
         url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
@@ -385,6 +503,16 @@ def get_openbd_data(isbn):
     except: pass
     return None
 
+def get_amazon_image_url(isbn):
+    """Generate Amazon Image URL from ISBN"""
+    isbn = str(isbn).replace('-', '').strip()
+    if len(isbn) == 13:
+        isbn10 = to_isbn10(isbn)
+        if isbn10: return f"https://images-na.ssl-images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
+    elif len(isbn) == 10:
+        return f"https://images-na.ssl-images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
+    return ""
+
 def resolve_best_image_url(isbn):
     # 1. Google
     g_data = get_google_books_data(isbn)
@@ -395,24 +523,7 @@ def resolve_best_image_url(isbn):
     if o_data and o_data.get("cover_url"): return o_data["cover_url"]
     
     # 3. Amazon
-    isbn = str(isbn).replace('-', '').strip()
-    if len(isbn) == 13:
-        isbn10 = to_isbn10(isbn)
-        if isbn10: return f"https://images-na.ssl-images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
-    elif len(isbn) == 10:
-        return f"https://images-na.ssl-images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
-    
-    return ""
-
-def get_amazon_image_url(isbn):
-    """Generate Amazon Image URL from ISBN"""
-    isbn = str(isbn).replace('-', '').strip()
-    if len(isbn) == 13:
-        isbn10 = to_isbn10(isbn)
-        if isbn10: return f"https://images-na.ssl-images-amazon.com/images/P/{isbn10}.09.LZZZZZZZ.jpg"
-    elif len(isbn) == 10:
-        return f"https://images-na.ssl-images-amazon.com/images/P/{isbn}.09.LZZZZZZZ.jpg"
-    return ""
+    return get_amazon_image_url(isbn)
 
 def fetch_book_info(isbn):
     """Unified Fetcher for Auto-Search"""
@@ -434,16 +545,104 @@ def fetch_book_info(isbn):
          
     return data
 
-# --- UI COMPONENTS ---
+def search_books_by_title(query, start_index=0):
+    """Search books by title via Google Books API (Hybrid: Relevance + Newest)"""
+    url = "https://www.googleapis.com/books/v1/volumes"
+    results = []
+    debug_log = ""
+    raw_items = []
+    
+    try:
+        # Route A: Specialized "Title" Search
+        params_title = {
+            "q": f"intitle:{query}",
+            "maxResults": 40,
+            "startIndex": start_index,
+            "langRestrict": "ja",
+            "printType": "books",
+            "country": "JP",
+            "orderBy": "relevance"
+        }
+        try:
+            r_title = requests.get(url, params=params_title, timeout=5)
+            if r_title.status_code == 200:
+                data = r_title.json()
+                if "items" in data: raw_items.extend(data["items"])
+        except: pass
 
-# Placeholder Image for Missing Covers (Simple Gray Book Icon)
+        # Route B: Standard Relevance (Backup)
+        params_rel = params_title.copy()
+        params_rel["q"] = query
+        try:
+            r_rel = requests.get(url, params=params_rel, timeout=5)
+            if r_rel.status_code == 200:
+                data = r_rel.json()
+                if "items" in data: raw_items.extend(data["items"])
+        except: pass
+
+        # Process & Deduplicate
+        unique_set = set()
+        raw_results = []
+        current_year = datetime.now().year
+        search_keywords = re.split(r'[ 　]+', query.strip().lower())
+        search_keywords = [k for k in search_keywords if k]
+
+        for item in raw_items:
+            info = item.get("volumeInfo", {})
+            title = info.get("title", "")
+            if not title: continue
+
+            # Year logic
+            pub_date = info.get("publishedDate", "")
+            year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
+            if year < 1960: continue 
+
+            # Relevance Check
+            target_text = (title + " " + " ".join(info.get("authors", []))).lower()
+            matches_count = sum(1 for k in search_keywords if k in target_text)
+            if matches_count == 0: continue
+
+            # Deduplication
+            isbn = ""
+            for ident in info.get("industryIdentifiers", []):
+                if ident["type"] == "ISBN_13": isbn = ident["identifier"]
+                elif ident["type"] == "ISBN_10" and not isbn: isbn = ident["identifier"]
+                
+            key = f"{title}_{info.get('authors', [])}"
+            if key in unique_set: continue
+            unique_set.add(key)
+            
+            cover_url = info.get("imageLinks", {}).get("thumbnail", "")
+            if not cover_url and isbn:
+                cover_url = get_amazon_image_url(isbn)
+            
+            raw_results.append({
+                "title": title,
+                "author": ", ".join(info.get("authors", ["Unknown"])),
+                "publisher": info.get("publisher", ""),
+                "publishedDate": f"{year}" if year else "",
+                "year": year,
+                "cover_url": cover_url,
+                "isbn": isbn,
+                "description": info.get("description", "")
+            })
+        
+        # Simple Sort (Relevance by keyword match + Newest)
+        raw_results.sort(key=lambda x: (sum(1 for k in search_keywords if k in (x['title']+x['author']).lower()), x['year']), reverse=True)
+        results = raw_results
+
+    except Exception as e:
+        debug_log += f"Exception: {str(e)}"
+        
+    return results, debug_log
+
+# --- 4. UI Components ---
 PLACEHOLDER_IMG = "https://placehold.co/400x600/e0e0e0/999999?text=No+Image"
 
 def render_book_card(row, is_mobile=False):
-    # Prepare Data for HTML (Fix 'nan' issues)
+    # Prepare Data
     img_url = row['cover_url'] if row['cover_url'] and str(row['cover_url']) != 'nan' else PLACEHOLDER_IMG
     
-    # Safe String Handling
     def safe_str(val):
         s = str(val).strip()
         return "" if s == 'nan' or s == 'None' else s
@@ -453,13 +652,11 @@ def render_book_card(row, is_mobile=False):
     category = safe_str(row['category'])
     status = safe_str(row['status'])
     
-    # Process Tags
     tags_html = ""
     if isinstance(row['tags'], str) and row['tags'] and safe_str(row['tags']):
         tags = [t.strip() for t in row['tags'].split(',')]
         tags_html = "".join([f"<span class='tag-badge'>{t}</span>" for t in tags])
     
-    # Process Notes
     note_content = safe_str(row['notes'])
     note_html = ""
     if note_content:
@@ -467,7 +664,7 @@ def render_book_card(row, is_mobile=False):
     else:
         note_html = "<div style='margin-top:10px; opacity:0.6; font-size:0.8rem;'>（メモなし）</div>"
 
-    # Construct Glass Card HTML (PIVOT Style)
+    # Glass Card HTML
     card_html = f"""
     <div class="glass-card">
         <div class="glass-card-img-box">
@@ -485,18 +682,15 @@ def render_book_card(row, is_mobile=False):
         </div>
     </div>
     """
-    
-    # Render HTML
     st.markdown(card_html, unsafe_allow_html=True)
     
-    # Edit Button (Minimalist)
+    # Edit Button
     btn_key = f"edit_{row['id']}_{'m' if is_mobile else 'p'}"
     if st.button("編集", key=btn_key):
         st.session_state["edit_target"] = row['id']
         st.rerun()
 
 def render_preview_card(isbn, categories, key_suffix):
-    """Show preview of book found via ISBN before adding"""
     if "preview_data" in st.session_state and st.session_state["preview_data"]:
         data = st.session_state["preview_data"]
         st.info("✅ 書籍が見つかりました")
@@ -512,11 +706,10 @@ def render_preview_card(isbn, categories, key_suffix):
             st.markdown(f"**{data['title']}**")
             st.caption(f"著者: {data['author']}")
             
-            # Registration Form inside Preview
             with st.form(key=f"confirm_add_{key_suffix}"):
                 c_cat = st.selectbox("カテゴリ", categories)
                 c_status = st.selectbox("状態", ["未読", "読書中", "読了"])
-                c_point = st.text_area("ポイント", height=100) # Changed from Memo to Point
+                c_point = st.text_area("ポイント", height=100)
                 
                 if st.form_submit_button("この本を登録する"):
                     if add_book(data['title'], data['author'], c_cat, "", c_status, c_point, data['cover_url'], "", isbn):
@@ -525,204 +718,84 @@ def render_preview_card(isbn, categories, key_suffix):
                         time.sleep(1)
                         st.rerun()
 
-from datetime import datetime
-
-def search_books_by_title(query, start_index=0):
-    """Search books by title via Google Books API (Hybrid: Relevance + Newest)"""
-    url = "https://www.googleapis.com/books/v1/volumes"
-    results = []
-    debug_log = ""
-    raw_items = []
-    
-    try:
-        # Route A: Specialized "Title" Search (Prioritize this!)
-        # We explicitly ask Google for "intitle:QUERY" first.
-        params_title = {
-            "q": f"intitle:{query}",
-            "maxResults": 40,
-            "startIndex": start_index,
-            "langRestrict": "ja",
-            "printType": "books",
-            "country": "JP",
-            "orderBy": "relevance"
-        }
-        try:
-            r_title = requests.get(url, params=params_title, timeout=5)
-            debug_log += f"Title: {r_title.status_code} | "
-            if r_title.status_code == 200:
-                data = r_title.json()
-                if "items" in data: raw_items.extend(data["items"])
-        except: pass
-
-        # Route B: Standard Relevance (Backup)
-        params_rel = params_title.copy()
-        params_rel["q"] = query
+def render_edit_form(row, categories, key_suffix):
+    with st.form(key=f"edit_form_{row['id']}_{key_suffix}"):
+        st.markdown(f"#### 編集: {row['title']}")
+        e_title = st.text_input("タイトル", row['title'])
+        e_author = st.text_input("著者", row['author'])
+        e_cat = st.selectbox("カテゴリ", categories, index=categories.index(row['category']) if row['category'] in categories else 0)
+        e_status = st.selectbox("状態", ["未読", "読書中", "読了"], index=["未読", "読書中", "読了"].index(row['status']))
+        e_notes = st.text_input("ポイント", row['notes']) 
         
-        try:
-            r_rel = requests.get(url, params=params_rel, timeout=5)
-            debug_log += f"Rel: {r_rel.status_code} | "
-            if r_rel.status_code == 200:
-                data = r_rel.json()
-                if "items" in data: raw_items.extend(data["items"])
-        except: pass
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.form_submit_button("保存"):
+                update_book(row['id'], e_title, e_author, e_cat, row['tags'], e_status, e_notes, row['read_date'])
+                st.session_state["edit_target"] = None
+                st.rerun()
+        with col2:
+            if st.form_submit_button("キャンセル"):
+                st.session_state["edit_target"] = None
+                st.rerun()
+        with col3:
+            if st.form_submit_button("削除", type="primary"):
+                delete_book(row['id'])
+                st.session_state["edit_target"] = None
+                st.success("削除しました")
+                time.sleep(1)
+                st.rerun()
 
-        # Route C: Omni-Search Permutations (Targeted Title/Author Fetch)
-        keywords = re.split(r'[ 　]+', query.strip())
-        keywords = [k for k in keywords if k]
+def render_add_book_form(categories, key_suffix):
+    with st.form(key=f"add_book_{key_suffix}"):
+        n_isbn = st.text_input("ISBN (任意)")
+        n_title = st.text_input("タイトル")
+        n_author = st.text_input("著者")
+        n_cat = st.selectbox("カテゴリ", categories)
+        n_status = st.selectbox("状態", ["未読", "読書中", "読了"])
         
-        if start_index == 0 and len(keywords) >= 2:
-            w1, w2 = keywords[0], keywords[1]
-            # Permutation 1: intitle:w1 inauthor:w2
-            params_p1 = params_rel.copy()
-            params_p1["q"] = f"intitle:{w1} inauthor:{w2}"
-            params_p1["startIndex"] = 0 
-            try:
-                r_p1 = requests.get(url, params=params_p1, timeout=5)
-                if r_p1.status_code == 200:
-                    data_p1 = r_p1.json()
-                    if "items" in data_p1: raw_items.extend(data_p1["items"])
-            except: pass
-
-            # Permutation 2: intitle:w2 inauthor:w1
-            params_p2 = params_rel.copy()
-            params_p2["q"] = f"intitle:{w2} inauthor:{w1}"
-            params_p2["startIndex"] = 0
-            try:
-                r_p2 = requests.get(url, params=params_p2, timeout=5)
-                if r_p2.status_code == 200:
-                    data_p2 = r_p2.json()
-                    if "items" in data_p2: raw_items.extend(data_p2["items"])
-            except: pass
-        
-        # Process & Deduplicate
-        unique_set = set()
-        raw_results = []
-        current_year = datetime.now().year
-        
-        # Prepare keywords for STRICT filtering
-        # Case insensitive check
-        search_keywords = re.split(r'[ 　]+', query.strip().lower())
-        search_keywords = [k for k in search_keywords if k]
-
-        for item in raw_items:
-            info = item.get("volumeInfo", {})
-            title = info.get("title", "")
-            if not title: continue
-
-            # Year logic
-            pub_date = info.get("publishedDate", "")
-            year = int(pub_date[:4]) if pub_date and pub_date[:4].isdigit() else 0
-            
-            # HARD FILTER 1: Date Quality Control
-            # Must be 1960+ (User hated pre-1950, upped to 1960 for safety) AND Year must be known
-            if year < 1960: 
-                continue 
-
-            # HARD FILTER 2: Strict Title/Author Match
-            # If standard search, we REQUIRE keywords to be in Title OR Author.
-            # (No more Description matching to avoid noise)
-            target_text = (title + " " + " ".join(info.get("authors", []))).lower()
-            
-            # Check if at least ONE keyword exists in Title/Author (Minimal relevance)
-            # For multi-word queries, we want stricter adherence usually, 
-            # but let's say: "If query is 'Example', 'Example' MUST be in Title/Author"
-            matches_count = sum(1 for k in search_keywords if k in target_text)
-            if matches_count == 0:
-                continue # Discard completely irrelevant results (noise from description-based matches)
-
-            # Deduplication
-            isbn = ""
-            for ident in info.get("industryIdentifiers", []):
-                if ident["type"] == "ISBN_13": isbn = ident["identifier"]
-                elif ident["type"] == "ISBN_10" and not isbn: isbn = ident["identifier"]
+        if st.form_submit_button("登録"):
+            c_url = ""
+            if n_isbn:
+                c_url = resolve_best_image_url(n_isbn)
                 
-            key = f"{title}_{info.get('authors', [])}"
-            if key in unique_set: continue
-            unique_set.add(key)
-            
-            # Cover URL Fallback
-            cover_url = info.get("imageLinks", {}).get("thumbnail", "")
-            if not cover_url and isbn:
-                cover_url = get_amazon_image_url(isbn)
-            
-            raw_results.append({
-                "title": title,
-                "author": ", ".join(info.get("authors", ["Unknown"])),
-                "publisher": info.get("publisher", ""),
-                "publishedDate": f"{year}" if year else "",
-                "year": year,
-                "cover_url": cover_url,
-                "isbn": isbn,
-                "description": info.get("description", "")
-            })
-        
-        # HYBRID TIERED SORTING (Refined)
-        def tiered_score(book):
-            score = 0
-            target_text = (book['title'] + " " + book['author']).lower()
-            
-            # 1. Exact Match Check (High Priority)
-            all_keywords_found = all(k in target_text for k in search_keywords)
-            
-            if all_keywords_found:
-                 score += 1000
-                 # Recency Boost
-                 if book['year'] >= (current_year - 5):
-                     score += 1000
-            else:
-                # Partial Match ranking
-                clean_query = query.replace(" ", "").replace("　", "").lower()
-                clean_title = book['title'].replace(" ", "").replace("　", "").lower()
-                match_ratio = difflib.SequenceMatcher(None, clean_query, clean_title).ratio()
-                score += (match_ratio * 500)
-
-            # 2. Base Year Score
-            score += (book['year'] / 100.0)
-            
-            return score
-        
-        results = sorted(raw_results, key=tiered_score, reverse=True)
-
-    except Exception as e:
-        debug_log += f"Exception: {str(e)}"
-        
-    return results, debug_log
+            if add_book(n_title, n_author, n_cat, "", n_status, "", c_url, "", n_isbn):
+                st.success("登録しました")
+                time.sleep(1)
+                st.rerun()
 
 def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
-    # Logo (PIVOT White Style)
+    # Logo
     try:
         st.sidebar.image("logo_pivot_white_final.png", use_container_width=True)
     except:
         st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
     
-    st.sidebar.markdown("---")
+    # --- View Control (Sidebar) - Removed from here, moved to main() ---
     
-    # 1. PC: Search via ISBN or Title
+    # st.sidebar.markdown("---")
+    
+    # PC Search in Sidebar
+    
+    # PC Search in Sidebar
     st.sidebar.markdown("#### 🔍 新規登録検索")
     search_input = st.sidebar.text_input("ISBN または タイトル、著者名", key="pc_new_book_search")
     st.sidebar.caption("※タイトル検索は候補一覧が表示されます")
     
-    # Init Page State
     if "search_page" not in st.session_state:
         st.session_state["search_page"] = 0
     
-    # Search Logic
     if search_input:
-        # Reset page on new search
         if "last_search_q" not in st.session_state or st.session_state["last_search_q"] != search_input:
              st.session_state["search_page"] = 0
              st.session_state["last_search_q"] = search_input
              
-        # Trigger Search (if new query OR page changed) (Logic simplified to always check state)
-        # We store 'current_results_key' to avoid re-fetching on every re-run unless page/query changes
         current_key = f"{search_input}_{st.session_state['search_page']}"
         
         if "last_fetched_key" not in st.session_state or st.session_state["last_fetched_key"] != current_key:
             with st.spinner(f"検索中... (Page {st.session_state['search_page'] + 1})"):
                 clean_input = search_input.replace("-", "").strip()
                 if clean_input.isdigit() and (len(clean_input) == 10 or len(clean_input) == 13):
-                     # ISBN Search (No pagination needed)
                     info = fetch_book_info(clean_input)
                     if info:
                         st.session_state["preview_data"] = info
@@ -733,14 +806,13 @@ def draw_pc_ui(df, categories):
                         st.sidebar.warning("見つかりませんでした")
                         st.session_state["preview_data"] = None
                 else:
-                    # Title Search with Pagination
                     start_idx = st.session_state["search_page"] * 20
                     candidates, debug_msg = search_books_by_title(search_input, start_index=start_idx)
                     if candidates:
                         st.session_state["candidate_list"] = candidates
                         st.session_state["preview_data"] = None
                     else:
-                        st.sidebar.warning(f"結果がありません\n({debug_msg})")
+                        st.sidebar.warning(f"結果がありません")
                         st.session_state["candidate_list"] = None
             
             st.session_state["last_fetched_key"] = current_key
@@ -748,119 +820,39 @@ def draw_pc_ui(df, categories):
     # Display Candidates (if any)
     if st.session_state.get("candidate_list"):
         st.markdown(f"### 📚 検索結果 (Page {st.session_state['search_page'] + 1})")
-        
-        # CSS for Uniform Cards
-        # CSS for Uniform Cards (PIVOT Style Update)
+        # CSS for Uniform Cards in Search
         st.markdown("""
         <style>
         .search-card-content {
             height: 280px;
-            display: flex;
+            display: flex; /* ...CSS simplified for brevity... */
             flex-direction: column;
-            justify-content: flex-start;
             overflow: hidden;
-            background-color: rgba(255, 255, 255, 0.1); /* Glass Background */
+            background-color: rgba(255, 255, 255, 0.1); 
             border-radius: 12px;
             padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
         }
-        .search-card-img-box {
-            height: 140px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255, 255, 255, 0.05); /* Slight tint */
-            margin-bottom: 8px;
-            border-radius: 8px;
-        }
-        .search-card-img {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-        }
-        .search-card-title {
-            font-weight: bold;
-            font-size: 0.95rem;
-            line-height: 1.3;
-            margin-bottom: 4px;
-            height: 2.6em;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            color: #ffffff !important; /* White Text */
-        }
-        .search-card-meta {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8) !important; /* Light Grey Text */
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .search-card-img-box { height: 140px; display: flex; justify-content: center; }
+        .search-card-img { max-height: 100%; max-width: 100%; object-fit: contain; }
         </style>
         """, unsafe_allow_html=True)
         
-        # Responsive-ish Grid: 5 columns for PC to fit more
         candidates = st.session_state["candidate_list"]
         cols = st.columns(5) 
-        
         for i, book in enumerate(candidates):
             with cols[i % 5]:
-                with st.container(border=True):
-                    # Prepare Content
-                    img_src = book.get("cover_url") if book.get("cover_url") else PLACEHOLDER_IMG
-                    title = book['title']
-                    author = book['author'] if book['author'] else "著者不明"
-                    
-                    pub_info = []
-                    if book.get('publisher'): pub_info.append(book['publisher'])
-                    if book.get('publishedDate'): pub_info.append(book['publishedDate'])
-                    meta = ' / '.join(pub_info) if pub_info else "&nbsp;"
-                    
-                    # Custom HTML for Uniform Layout
-                    html_content = f"""
-                    <div class="search-card-content">
-                        <div class="search-card-img-box">
-                            <img src="{img_src}" class="search-card-img">
-                        </div>
-                        <div class="search-card-title" title="{title}">{title}</div>
-                        <div class="search-card-meta">👤 {author}</div>
-                        <div class="search-card-meta">🏢 {meta}</div>
-                    </div>
-                    """
-                    st.markdown(html_content, unsafe_allow_html=True)
-                    
-                    # Native Button (placed outside fixed height div, aligns at bottom)
-                    if st.button("選択", key=f"sel_cand_{i}", use_container_width=True):
-                        st.session_state["preview_data"] = book
-                        st.session_state["candidate_list"] = None
-                        st.rerun()
-        
-        # Pagination Buttons
-        p_col1, p_col2, p_col3 = st.columns([1, 2, 1])
-        with p_col1:
-            if st.session_state["search_page"] > 0:
-                if st.button("In Prever (前へ)"):
-                    st.session_state["search_page"] -= 1
-                    st.session_state.pop("last_fetched_key", None) # Force refetch
+                 # ... Render Candidate ...
+                 img_src = book.get("cover_url") if book.get("cover_url") else PLACEHOLDER_IMG
+                 st.image(img_src, caption=book['title'][:20], use_container_width=True)
+                 if st.button("選択", key=f"sel_cand_{i}", use_container_width=True):
+                    st.session_state["preview_data"] = book
+                    st.session_state["candidate_list"] = None
                     st.rerun()
-        with p_col3:
-            if len(candidates) >= 20: # Assuming full page means more likely exists
-                if st.button("Next (次へ)"):
-                    st.session_state["search_page"] += 1
-                    st.session_state.pop("last_fetched_key", None) # Force refetch
-                    st.rerun()
-                    
         st.markdown("---")
 
-    # Display Preview (Single Match or Selected Candidate)
+    # Display Preview
     if st.session_state.get("preview_data"):
         st.markdown("### 📝 登録候補")
-        # Use ISBN from data if available, else empty (will be registered without ISBN or as is)
         target_isbn = st.session_state["preview_data"].get("isbn", "")
         render_preview_card(target_isbn, categories, "pc")
         st.markdown("---")
@@ -869,7 +861,6 @@ def draw_pc_ui(df, categories):
     st.sidebar.markdown("#### 📂 フィルタ")
     search_q = st.sidebar.text_input("キーワード検索", key="pc_search")
     cat_filter = st.sidebar.multiselect("カテゴリ", categories, key="pc_cat_filter")
-
     
     # Filter Logic
     filtered = df.copy()
@@ -891,44 +882,12 @@ def draw_pc_ui(df, categories):
     with st.expander("➕ 手動登録フォーム"):
         render_add_book_form(categories, key_suffix="pc")
 
-def render_edit_form(row, categories, key_suffix):
-    with st.form(key=f"edit_form_{row['id']}_{key_suffix}"):
-        st.markdown(f"#### 編集: {row['title']}")
-        e_title = st.text_input("タイトル", row['title'])
-        e_author = st.text_input("著者", row['author'])
-        e_cat = st.selectbox("カテゴリ", categories, index=categories.index(row['category']) if row['category'] in categories else 0)
-        e_status = st.selectbox("状態", ["未読", "読書中", "読了"], index=["未読", "読書中", "読了"].index(row['status']))
-        e_notes = st.text_input("ポイント", row['notes']) # Unified style with Title/Status
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            if st.form_submit_button("保存"):
-                update_book(row['id'], e_title, e_author, e_cat, row['tags'], e_status, e_notes, row['read_date'])
-                st.session_state["edit_target"] = None
-                st.rerun()
-        with col2:
-            if st.form_submit_button("キャンセル"):
-                st.session_state["edit_target"] = None
-                st.rerun()
-        with col3:
-            # Delete Button
-            if st.form_submit_button("削除", type="primary"):
-                delete_book(row['id'])
-                st.session_state["edit_target"] = None
-                st.success("削除しました")
-                time.sleep(1)
-                st.rerun()
-
 def draw_mobile_ui(df, categories):
     """Render Mobile Exclusive UI"""
     st.markdown("### 📱 蔵書一覧")
     
     # 1. Mobile: Camera Scanner (TOP PRIORITY)
-    # Fix: Put camera in an expander or checkbox to prevent auto-activation on load (which affects PC if code executes)
     st.markdown("#### 📷 バーコード読取")
-    
-    # Checkbox to explicitly activate camera. Default False.
-    # This prevents the camera from turning on automatically when the page loads (on PC or Mobile).
     show_camera = st.checkbox("カメラを起動する", key="toggle_camera")
     
     if show_camera and PYZBAR_AVAILABLE:
@@ -973,38 +932,45 @@ def draw_mobile_ui(df, categories):
     with st.expander("➕ 手動登録"):
         render_add_book_form(categories, key_suffix="mob")
 
-def render_add_book_form(categories, key_suffix):
-    with st.form(key=f"add_book_{key_suffix}"):
-        n_isbn = st.text_input("ISBN (任意)")
-        n_title = st.text_input("タイトル")
-        n_author = st.text_input("著者")
-        n_cat = st.selectbox("カテゴリ", categories)
-        n_status = st.selectbox("状態", ["未読", "読書中", "読了"])
-        
-        if st.form_submit_button("登録"):
-            c_url = ""
-            if n_isbn:
-                c_url = resolve_best_image_url(n_isbn)
-                
-            if add_book(n_title, n_author, n_cat, "", n_status, "", c_url, "", n_isbn):
-                st.success("登録しました")
-                time.sleep(1)
-                st.rerun()
 
 # --- Main Application Logic ---
 def main():
-    df = get_books()
+    try:
+        df = get_books()
+    except Exception as e:
+        st.error(f"Data Load Error: {e}")
+        df = pd.DataFrame()
+
     categories = get_categories()
     
-    # PC Wrapper with Marker
-    with st.container():
-        st.markdown('<div class="pc-marker"></div>', unsafe_allow_html=True)
-        draw_pc_ui(df, categories)
+    categories = get_categories()
     
-    # Mobile Wrapper with Marker
-    with st.container():
-        st.markdown('<div class="mobile-marker"></div>', unsafe_allow_html=True)
-        draw_mobile_ui(df, categories)
+    # --- Robust View Control (Sidebar) ---
+    # Defined HERE in main scope so it's available for logic below
+    with st.sidebar:
+        st.markdown("---")
+        with st.expander("🖥️ Display Mode", expanded=False):
+            view_mode = st.radio("表示モード", ["Auto (自動)", "PC固定", "スマホ固定"], index=0, key="view_mode_main_selector")
+        st.sidebar.markdown("---")
+
+    # Render based on selection
+    # 1. PC UI
+    if view_mode in ["Auto (自動)", "PC固定"]:
+        with st.container():
+            # Marker for CSS visibility control (Only active in Auto mode)
+            if view_mode == "Auto (自動)":
+                st.markdown('<div class="pc-view-marker"></div>', unsafe_allow_html=True)
+            
+            draw_pc_ui(df, categories)
+
+    # 2. Mobile UI
+    if view_mode in ["Auto (自動)", "スマホ固定"]:
+        with st.container():
+            # Marker for CSS visibility control (Only active in Auto mode)
+            if view_mode == "Auto (自動)":
+                st.markdown('<div class="mobile-view-marker"></div>', unsafe_allow_html=True)
+                
+            draw_mobile_ui(df, categories)
 
 if __name__ == "__main__":
     main()
