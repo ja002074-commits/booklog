@@ -234,8 +234,16 @@ div[data-testid="stExpander"] {
     }
 }
 
-/* Markers */
+/* Marker Logic */
 .pc-marker, .mobile-marker { display: none; }
+
+/* Device Separation Logic (Robust) */
+@media (max-width: 767px) {
+    div[data-testid="stVerticalBlock"]:has(.pc-marker) { display: none !important; }
+}
+@media (min-width: 768px) {
+    div[data-testid="stVerticalBlock"]:has(.mobile-marker) { display: none !important; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -913,7 +921,7 @@ def render_edit_form(row, categories, key_suffix):
 
 def draw_mobile_ui(df, categories):
     """Render Mobile Exclusive UI"""
-    st.markdown("### 📱 読書録")
+    st.markdown("### 📱 蔵書一覧")
     
     # 1. Mobile: Camera Scanner (TOP PRIORITY)
     # Fix: Put camera in an expander or checkbox to prevent auto-activation on load (which affects PC if code executes)
