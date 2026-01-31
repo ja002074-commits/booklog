@@ -38,148 +38,175 @@ st.markdown("""
 # Custom CSS with ROBUST Device Separation
 st.markdown("""
 <style>
-/* 1. Global Minimalist Design (MUJI Style) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+/* 1. Global Gradient Background (PIVOT Style) & Atmosphere */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 .stApp {
-    background-color: #FFFFFF; /* Pure White Background */
-    color: #444444; /* Soft Black Text */
-    font-family: "Inter", "Noto Sans JP", sans-serif;
-    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Deep Purple-Blue Gradient */
+    background-attachment: fixed;
+    color: #ffffff;
+    font-family: "Montserrat", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    letter-spacing: 0.03em;
 }
 
-/* 2. Sidebar (Light Grey & Clean) */
+/* 2. Glassmorphism Sidebar (Dark/Transparent) */
 section[data-testid="stSidebar"] {
-    background-color: #F9F9F9 !important; /* Very Light Grey */
-    border-right: 1px solid #EAEAEA;
-    box-shadow: none !important;
+    background-color: rgba(20, 20, 30, 0.4) !important; /* Dark Glass */
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.2);
+    backdrop-filter: blur(12px);
 }
-/* Sidebar Text: Dark Grey */
+/* Force Sidebar text to be WHITE */
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] h4,
+section[data-testid="stSidebar"] h5,
+section[data-testid="stSidebar"] h6,
 section[data-testid="stSidebar"] span,
 section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
-    color: #333333 !important;
-    font-weight: 500;
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] span,
+section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] small,
+section[data-testid="stSidebar"] .stMarkdown {
+    color: #ffffff !important;
+    font-family: "Montserrat", "Noto Sans JP", sans-serif !important;
 }
-/* Hide the 'keyboard_double_arrow_right' text artifacts (Streamlit internal icon text leak) */
-button[kind="header"] span {
-    font-size: 0 !important; /* Hack to hide text */
-}
-button[kind="header"] span::after {
-    content: "" !important; /* Ensure no text content */
-}
+/* Hide artifacts if needed */
+button[kind="header"] span { font-size: 0 !important; }
+button[kind="header"] span::after { content: "" !important; }
 
-/* 3. Typography & Headers */
+/* 3. Main Content Headers */
 h1, h2, h3 {
-    font-family: "Inter", "Noto Sans JP", sans-serif !important;
-    color: #333333 !important;
-    font-weight: 600 !important;
-    text-transform: none !important; /* Remove uppercase force */
-    text-shadow: none !important; /* No shadows */
+    font-family: "Montserrat", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif !important;
+    color: #ffffff !important;
+    font-weight: 800 !important; /* Bold like PIVOT */
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 h1 {
-    font-size: 2.0rem !important;
-    border-bottom: 2px solid #7F0019; /* Accent Color Line */
-    padding-bottom: 10px;
+    font-size: 2.5rem !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 15px;
     margin-bottom: 30px;
 }
 
-/* 4. Inputs (Minimalist Lines) */
+/* 4. Glassy Inputs (Main Area) */
+/* Text Input, Selectbox, Text Area */
 .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
-    background-color: #FFFFFF !important;
-    color: #333333 !important;
-    border: 1px solid #DDDDDD !important;
-    border-radius: 4px !important;
-    padding: 10px !important;
-    font-size: 1rem !important;
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(12px);
+    font-family: "Montserrat", "Noto Sans JP", sans-serif;
 }
-.stTextInput input:focus, .stTextArea textarea:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {
-    border-color: #7F0019 !important; /* Crimson Accent Focus */
-    box-shadow: 0 0 0 1px #7F0019 !important;
+/* Sidebar Inputs Override (Dark Text) */
+section[data-testid="stSidebar"] .stTextInput input, 
+section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    border: 1px solid #ccc !important;
 }
 
-/* 5. Buttons (Crimson Accent) */
+/* Labels */
+.stMarkdown label, .stMarkdown p {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 500;
+}
+/* Expander (Glassy) */
+.streamlit-expanderHeader {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    font-weight: 600;
+}
+div[data-testid="stExpander"] {
+    background-color: rgba(0,0,0,0.1) !important;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 5. Buttons (Vibrant Gradient) */
 .stButton button {
-    background: #7F0019 !important; /* Crimson */
-    color: #FFFFFF !important;
+    background: linear-gradient(90deg, #ff8a00, #e52e71) !important; /* PIVOT Accent Colors */
+    color: white !important;
     border: none !important;
-    border-radius: 4px !important;
-    font-weight: 500 !important;
-    padding: 0.6rem 1.5rem !important;
-    box-shadow: none !important;
-    font-family: "Inter", sans-serif !important;
-    transition: opacity 0.2s ease !important;
+    border-radius: 30px !important;
+    font-weight: 700 !important;
+    padding: 0.6rem 2rem !important;
+    box-shadow: 0 4px 15px rgba(229, 46, 113, 0.4) !important;
+    font-family: "Montserrat", sans-serif !important;
+    transition: all 0.3s ease !important;
+    letter-spacing: 0.05em !important;
 }
 .stButton button:hover {
-    transform: none !important;
-    opacity: 0.9 !important;
-    box-shadow: none !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(229, 46, 113, 0.6) !important;
 }
 
-/* 6. Card Styling (Flat & Clean) */
+/* 6. GLASS CARD STYLING */
 .glass-card {
-    background-color: #FFFFFF;
-    border: 1px solid #EAEAEA;
-    border-radius: 8px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: none !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    gap: 25px;
+    gap: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 .glass-card-img-box {
     width: 120px;
     flex-shrink: 0;
-    border-radius: 2px;
+    border-radius: 8px;
     overflow: hidden;
-    background: #F4F4F4;
+    background: transparent;
 }
 .glass-card-img {
     width: 100%;
     height: auto;
     display: block;
-    mix-blend-mode: multiply; /* Better integration on white */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 .glass-card-content {
     flex-grow: 1;
-    color: #444444;
+    color: #ffffff;
 }
 .glass-card-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin: 0 0 8px 0;
-    line-height: 1.4;
-    color: #222222;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    line-height: 1.3;
 }
 .glass-card-author {
     font-size: 0.9rem;
-    color: #666666;
-    margin-bottom: 12px;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 10px;
 }
 .tag-badge {
-    background: #F4F4F4;
-    padding: 4px 10px;
-    border-radius: 4px;
+    background: rgba(255,255,255,0.2);
+    padding: 3px 10px;
+    border-radius: 12px;
     font-size: 0.75rem;
-    margin-right: 6px;
-    color: #555555;
-    border: 1px solid #DDDDDD;
+    margin-right: 5px;
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.3);
     display: inline-block;
 }
 .note-box {
-    background: #FFFAFA; /* Very light pink/white tint */
-    padding: 12px;
-    border-radius: 4px;
-    border-left: 3px solid #7F0019;
-    color: #555555;
+    background: rgba(0,0,0,0.25);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #ff8a00;
+    color: #f0f0f0;
     font-size: 0.9rem;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 /* Mobile Adjustments */
@@ -188,7 +215,6 @@ h1 {
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding: 20px;
     }
     .glass-card-img-box {
         width: 140px;
@@ -424,7 +450,7 @@ def render_book_card(row, is_mobile=False):
     else:
         note_html = "<div style='margin-top:10px; opacity:0.6; font-size:0.8rem;'>（メモなし）</div>"
 
-    # Construct Minimalist Glass Card HTML
+    # Construct Glass Card HTML (PIVOT Style)
     card_html = f"""
     <div class="glass-card">
         <div class="glass-card-img-box">
@@ -657,7 +683,7 @@ def draw_pc_ui(df, categories):
     
     # 1. PC: Search via ISBN or Title
     st.sidebar.markdown("#### 🔍 新規登録検索")
-    search_input = st.sidebar.text_input("ISBN または タイトル", key="pc_new_book_search")
+    search_input = st.sidebar.text_input("ISBN または タイトル、著者名", key="pc_new_book_search")
     st.sidebar.caption("※タイトル検索は候補一覧が表示されます")
     
     # Init Page State
@@ -707,7 +733,7 @@ def draw_pc_ui(df, categories):
         st.markdown(f"### 📚 検索結果 (Page {st.session_state['search_page'] + 1})")
         
         # CSS for Uniform Cards
-        # CSS for Uniform Cards (Minimalist MUJI Style)
+        # CSS for Uniform Cards (PIVOT Style Update)
         st.markdown("""
         <style>
         .search-card-content {
@@ -716,16 +742,11 @@ def draw_pc_ui(df, categories):
             flex-direction: column;
             justify-content: flex-start;
             overflow: hidden;
-            background-color: #FFFFFF; /* White Card */
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #EAEAEA;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-        .search-card-content:hover {
-            border-color: #7F0019; /* Crimson Hover */
-            transform: translateY(-2px);
+            background-color: rgba(255, 255, 255, 0.1); /* Glass Background */
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
         }
         .search-card-img-box {
             height: 140px;
@@ -733,31 +754,31 @@ def draw_pc_ui(df, categories):
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #F9F9F9;
+            background-color: rgba(255, 255, 255, 0.05); /* Slight tint */
             margin-bottom: 8px;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         .search-card-img {
             max-height: 100%;
             max-width: 100%;
             object-fit: contain;
-            mix-blend-mode: multiply;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
         }
         .search-card-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            line-height: 1.4;
+            font-weight: bold;
+            font-size: 0.95rem;
+            line-height: 1.3;
             margin-bottom: 4px;
-            height: 2.8em;
+            height: 2.6em;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-            color: #333333 !important; /* Dark Grey Text */
+            color: #ffffff !important; /* White Text */
         }
         .search-card-meta {
-            font-size: 0.75rem;
-            color: #666666 !important; /* Medium Grey Text */
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8) !important; /* Light Grey Text */
             margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
