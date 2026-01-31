@@ -684,7 +684,7 @@ def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
     # Logo (PIVOT White Style)
     try:
-        st.sidebar.image("logo_pivot_white.png", use_container_width=True)
+        st.sidebar.image("logo_pivot_white_final.png", use_container_width=True)
     except:
         st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
     
