@@ -73,8 +73,17 @@ section[data-testid="stSidebar"] .stMarkdown {
     font-family: "Montserrat", "Noto Sans JP", sans-serif !important;
 }
 /* Hide artifacts if needed */
-button[kind="header"] span { font-size: 0 !important; }
-button[kind="header"] span::after { content: "" !important; }
+/* Hide artifacts (Robust) */
+button[kind="header"] span,
+[data-testid="stSidebarCollapseButton"] span,
+[data-testid="stSidebar"] button span {
+    font-size: 0 !important; 
+    opacity: 0 !important;
+}
+button[kind="header"] span::after,
+[data-testid="stSidebarCollapseButton"] span::after {
+    content: "" !important; 
+}
 
 /* 3. Main Content Headers */
 h1, h2, h3 {
@@ -673,9 +682,9 @@ def search_books_by_title(query, start_index=0):
 
 def draw_pc_ui(df, categories):
     """Render PC Exclusive UI"""
-    # Logo (PIVOT Style)
+    # Logo (PIVOT White Style)
     try:
-        st.sidebar.image("logo_text.png", use_container_width=True)
+        st.sidebar.image("logo_pivot_white.png", use_container_width=True)
     except:
         st.sidebar.markdown(f"### 🏛️ 書籍DB (PC)")
     
